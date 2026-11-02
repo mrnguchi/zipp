@@ -26,12 +26,13 @@ export function SplashScreen() {
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.yellow }]}>
       <StatusBar style="dark" />
       <View style={styles.center}>
-        <Image
-          accessibilityLabel="Zipp"
-          source={require('../../assets/full logo.png')}
-          resizeMode="contain"
-          style={styles.logo}
-        />
+        <View accessible accessibilityLabel="Zipp" style={styles.logo}>
+          <Image source={require('../../assets/full logo.png')} resizeMode="contain" style={styles.logoArtwork} />
+          {/* Clip a black-tinted copy to the dot, preserving the green Z and wordmark. */}
+          <View pointerEvents="none" style={styles.dotClip}>
+            <Image source={require('../../assets/full logo.png')} resizeMode="contain" style={styles.blackDotArtwork} />
+          </View>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -50,6 +51,27 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 220,
-    height: 150,
+    height: 220 * 725 / 2170,
+  },
+  logoArtwork: {
+    width: 220,
+    height: 220 * 725 / 2170,
+  },
+  // Bounds in the original 2170 × 725 logo around the isolated i dot.
+  dotClip: {
+    position: 'absolute',
+    left: 220 * 1130 / 2170,
+    top: 220 * 65 / 2170,
+    width: 220 * 150 / 2170,
+    height: 220 * 145 / 2170,
+    overflow: 'hidden',
+  },
+  blackDotArtwork: {
+    position: 'absolute',
+    left: -220 * 1130 / 2170,
+    top: -220 * 65 / 2170,
+    width: 220,
+    height: 220 * 725 / 2170,
+    tintColor: '#000000',
   },
 });

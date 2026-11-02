@@ -36,7 +36,7 @@ export function PhoneVerificationScreen() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const codeInput = useRef<TextInputInstance>(null);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(__DEV__ && purpose === 'login' ? '123456' : '');
   const [error, setError] = useState('');
 
   const verifyCode = () => {
@@ -55,7 +55,11 @@ export function PhoneVerificationScreen() {
         ? t('verification.signupComplete')
         : t('verification.loginComplete'),
     );
-    navigation.navigate('SelectRole');
+    if (purpose === 'signup') {
+      navigation.replace('SelectRole');
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'RoleHome' }] });
+    }
   };
 
   return (

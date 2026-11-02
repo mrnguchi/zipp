@@ -29,8 +29,8 @@ export function LoginScreen() {
   const { colors } = useAppTheme();
   const { height } = useWindowDimensions();
   const illustrationHeight = Math.min(300, Math.max(190, height * 0.28));
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState(__DEV__ ? '600000000' : '');
+  const [password, setPassword] = useState(__DEV__ ? 'ZippDemo123!' : '');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState('');
 

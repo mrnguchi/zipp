@@ -1,13 +1,13 @@
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText as Text } from './AppText';
 import { colors } from '../constants/colors';
 import { ArrivalDots } from './ArrivalDots';
 
-type Props = { name: string; model: string; image: ImageSourcePropType; pickup: string; destination: string; onMessage: () => void; arrivalLabel: string; phase?: 'arriving' | 'arrived' | 'in_progress'; pin?: string; onShare?: () => void; onSafety?: () => void };
+type Props = { name: string; model: string; image: ImageSourcePropType; pickup: string; destination: string; onMessage: () => void; onCall: () => void; arrivalLabel: string; phase?: 'arriving' | 'arrived' | 'in_progress'; pin?: string; onShare?: () => void; onSafety?: () => void };
 
-export function RideDriverDetails({ name, model, image, pickup, destination, onMessage, arrivalLabel, phase = 'arriving', pin = '', onShare, onSafety }: Props) {
+export function RideDriverDetails({ name, model, image, pickup, destination, onMessage, onCall, arrivalLabel, phase = 'arriving', pin = '', onShare, onSafety }: Props) {
   return <View style={styles.content}>
     <View style={styles.status}><Image source={require('../../assets/driver car.png')} resizeMode="contain" style={styles.arrivalCar} /><View style={styles.arrivalCopy}><View style={styles.arrivalHeading}><Text style={styles.arrivalText}>{phase === 'arrived' ? 'Your driver is here' : phase === 'in_progress' ? 'You’re on your way' : 'Driver arriving'}</Text>{phase === 'arriving' && <ArrivalDots />}</View><Text style={styles.arrivalEstimate}>{phase === 'arrived' ? 'Meet at your pickup location' : arrivalLabel}</Text></View></View>
     {phase === 'arrived' && <View style={styles.pinCard}><View style={styles.pinHeading}><Ionicons name="shield-checkmark-outline" size={21} color={colors.primary} /><Text style={styles.pinTitle}>Your trip PIN</Text></View><Text style={styles.pinCopy}>Check the number plate and get inside before sharing this PIN with your driver.</Text><View style={styles.pinDigits} accessibilityLabel={`Trip PIN ${pin.split('').join(' ')}`}>{pin.split('').map((digit, index) => <View key={index} style={styles.pinDigit}><Text style={styles.pinNumber}>{digit}</Text></View>)}</View><Text style={styles.pinHint}>Your ride starts after your driver verifies the PIN.</Text></View>}
@@ -22,7 +22,7 @@ export function RideDriverDetails({ name, model, image, pickup, destination, onM
         <View style={styles.avatar}><Ionicons name="person" size={27} color={colors.primary} /></View>
         <View style={styles.flex}><Text style={styles.name}>Alex</Text><View style={styles.rating}><Ionicons name="star" size={12} color={colors.yellow} /><Text style={styles.caption}>4.9 · 320 trips</Text></View></View>
         <Pressable accessibilityRole="button" accessibilityLabel="Message driver" onPress={onMessage} style={styles.contact}><Ionicons name="chatbubble-ellipses" size={20} color={colors.navy} /></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Call driver" onPress={() => Alert.alert('Contact your driver', 'A phone number is required to place a call. You can keep a message for your driver here.', [{ text: 'Close', style: 'cancel' }, { text: 'Message', onPress: onMessage }])} style={styles.contact}><Ionicons name="call" size={20} color={colors.navy} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Call driver" onPress={onCall} style={styles.contact}><Ionicons name="call" size={20} color={colors.navy} /></Pressable>
       </View>
     </View>
     <View style={styles.route}>

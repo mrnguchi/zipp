@@ -1,0 +1,55 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
+const exported = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/services/messaging.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports: exported });
+const { createMessagingPreview, messagingReducer, driverConversation, formatCallDuration, searchConversations } = exported;
+const message = (id, overrides = {}) => ({ id, author: 'me', kind: 'text', text: 'I am at the entrance.', createdAt: 1000, ...overrides });
+test('fixtures are development-only; a ride conversation is created once without discarding its messages', () => {
+  assert.equal(createMessagingPreview(false).conversations.length, 0);
+  let state = createMessagingPreview(false);
+  const conversation = driverConversation('ride:test', { pickup: 'A', destination: 'B', vehicle: 'Toyota', plate: 'SW' });
+  state = messagingReducer(state, { type: 'conversation', conversation });
+  state = messagingReducer(state, { type: 'message', conversationId: conversation.id, message: message('1') });
+  state = messagingReducer(state, { type: 'conversation', conversation });
+  assert.equal(state.conversations.length, 1); assert.equal(state.conversations[0].messages.length, 1);
+});
+test('drafts remain per conversation; blank, duplicate and invalid attachments never enter a thread', () => {
+  let state = createMessagingPreview(true, 100000000);
+  state = messagingReducer(state, { type: 'draft', conversationId: 'demo-alex', text: 'Draft for Alex' });
+  state = messagingReducer(state, { type: 'draft', conversationId: 'demo-marie', text: 'Draft for Marie' });
+  assert.equal(state.drafts['demo-alex'], 'Draft for Alex'); assert.equal(state.drafts['demo-marie'], 'Draft for Marie');
+  const count = state.conversations[0].messages.length;
+  for (const entry of [message('blank', { text: '  ' }), message('photo', { kind: 'image' }), message('location', { kind: 'location', coordinate: { latitude: 91, longitude: 9 } })]) state = messagingReducer(state, { type: 'message', conversationId: 'demo-alex', message: entry });
+  assert.equal(state.conversations[0].messages.length, count);
+  const photo = message('photo-valid', { kind: 'image', uri: 'file:///photo.jpg', text: ' Pickup entrance ' });
+  state = messagingReducer(state, { type: 'message', conversationId: 'demo-alex', message: photo });
+  state = messagingReducer(state, { type: 'message', conversationId: 'demo-alex', message: photo });
+  assert.equal(state.conversations[0].messages.length, count + 1); assert.equal(state.conversations[0].messages.at(-1).text, 'Pickup entrance');
+});
+test('reading clears unread counts, incoming messages increment them, search finds message text', () => {
+  let state = createMessagingPreview(true, 100000000);
+  state = messagingReducer(state, { type: 'read', conversationId: 'demo-alex' });
+  assert.equal(searchConversations(state.conversations, '', true).length, 0);
+  state = messagingReducer(state, { type: 'message', conversationId: 'demo-alex', message: message('incoming', { author: 'contact', text: 'Look for the blue gate.' }) });
+  assert.equal(searchConversations(state.conversations, ' BLUE GATE ', true)[0].id, 'demo-alex');
+  state = messagingReducer(state, { type: 'mute', conversationId: 'demo-alex', muted: true });
+  assert.equal(state.conversations[0].muted, true);
+});
+test('call preview cannot connect after cancellation, alter a finished call, or lose its duration', () => {
+  let state = createMessagingPreview(true, 100000000);
+  const add = id => ({ type: 'call', call: { id, conversationId: 'demo-alex', mode: 'voice', direction: 'outgoing', status: 'ringing', startedAt: 1000 } });
+  state = messagingReducer(state, add('call-1'));
+  state = messagingReducer(state, { type: 'call-status', id: 'call-1', status: 'canceled', now: 2000 });
+  state = messagingReducer(state, { type: 'call-status', id: 'call-1', status: 'active', now: 4000 });
+  assert.equal(state.calls[0].status, 'canceled'); assert.equal(state.calls[0].connectedAt, undefined);
+  state = messagingReducer(state, add('call-2'));
+  state = messagingReducer(state, { type: 'call-status', id: 'call-2', status: 'active', now: 4000 });
+  state = messagingReducer(state, { type: 'call-status', id: 'call-2', status: 'ended', now: 69000 });
+  state = messagingReducer(state, { type: 'call-status', id: 'call-2', status: 'active', now: 90000 });
+  assert.equal(state.calls[0].status, 'ended'); assert.equal(formatCallDuration((state.calls[0].endedAt - state.calls[0].connectedAt) / 1000), '01:05');
+  assert.equal(formatCallDuration(NaN), '00:00');
+});
