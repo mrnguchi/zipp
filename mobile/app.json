@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Zipp",
+    "slug": "zipp",
+    "scheme": "zipp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#121B26"
+    },
+    "plugins": [
+      "expo-localization",
+      "expo-asset",
+      "expo-font",
+      ["expo-location", {
+        "locationWhenInUsePermission": "Allow Zipp to show your current position on the map.",
+        "locationAlwaysPermission": false,
+        "locationAlwaysAndWhenInUsePermission": false,
+        "motionUsagePermission": false,
+        "isIosBackgroundLocationEnabled": false,
+        "isAndroidBackgroundLocationEnabled": false,
+        "isAndroidForegroundServiceEnabled": false
+      }]
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    }
+  }
+}

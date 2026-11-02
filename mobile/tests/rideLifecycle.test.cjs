@@ -1,0 +1,74 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
+function load(file) { const exports = {}; vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src', file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports }); return exports; }
+test('ride start requires arrival and driver PIN verification; completion and rating follow in order', () => {
+  const { transitionRide } = load('services/rideEvents.ts');
+  const confirmed = transitionRide(null, { type: 'confirmed', rideId: 'trip', pin: '4826', fare: 1500 });
+  assert.equal(confirmed.phase, 'arriving');
+  assert.equal(transitionRide(confirmed, { type: 'started', rideId: 'trip' }), confirmed);
+  const arrived = transitionRide(confirmed, { type: 'arrived', rideId: 'trip' });
+  assert.equal(arrived.phase, 'arrived');
+  assert.equal(transitionRide(arrived, { type: 'started', rideId: 'trip' }), arrived);
+  const verified = transitionRide(arrived, { type: 'pin_verified', rideId: 'trip' });
+  const started = transitionRide(verified, { type: 'started', rideId: 'trip' });
+  assert.equal(started.phase, 'in_progress');
+  assert.equal(transitionRide(started, { type: 'canceled', rideId: 'trip' }), started);
+  const completed = transitionRide(started, { type: 'completed', rideId: 'trip', fare: 1800 });
+  assert.equal(completed.phase, 'processing_payment'); assert.equal(completed.fare, 1800); assert.equal(completed.paid, false);
+  assert.equal(transitionRide(completed, { type: 'rated', rideId: 'trip', rating: 5, feedback: '' }), completed);
+  const paid = transitionRide(completed, { type: 'payment_received', rideId: 'trip' });
+  assert.equal(paid.paid, true); assert.equal(paid.phase, 'completed');
+  const rated = transitionRide(paid, { type: 'rated', rideId: 'trip', rating: 5, feedback: ' Great ride ' });
+  assert.equal(rated.phase, 'rated'); assert.equal(rated.feedback, 'Great ride');
+});
+test('invalid, duplicate and unrelated events cannot advance or overwrite the ride', () => {
+  const { transitionRide } = load('services/rideEvents.ts');
+  assert.equal(transitionRide(null, { type: 'confirmed', rideId: 'trip', pin: '12', fare: 1500 }), null);
+  const state = transitionRide(null, { type: 'confirmed', rideId: 'trip', pin: '4826', fare: 1500 });
+  assert.equal(transitionRide(state, { type: 'arrived', rideId: 'other-trip' }), state);
+  assert.equal(transitionRide(state, { type: 'completed', rideId: 'trip', fare: -1 }), state);
+  assert.equal(transitionRide(state, { type: 'payment_received', rideId: 'trip' }), state);
+  const canceled = transitionRide(state, { type: 'canceled', rideId: 'trip' });
+  assert.equal(canceled.pin, '');
+  assert.equal(transitionRide(canceled, { type: 'arrived', rideId: 'trip' }), canceled);
+  assert.equal(transitionRide(canceled, { type: 'canceled', rideId: 'trip' }), canceled);
+});
+test('car movement follows road segments by distance and trims only the traveled portion', () => {
+  const { routeProgress } = load('utils/routeProgress.ts');
+  const road = [{ latitude: 0, longitude: 0 }, { latitude: 0, longitude: 1 }, { latitude: 2, longitude: 1 }];
+  const halfway = routeProgress(road, 0.5);
+  assert.equal(halfway.coordinate.longitude, 1);
+  assert.ok(Math.abs(halfway.coordinate.latitude - 0.5) < 0.001);
+  assert.equal(halfway.remaining.length, 2);
+  assert.equal(routeProgress(road, 0).coordinate.longitude, 0);
+  assert.equal(routeProgress(road, 1).coordinate.latitude, 2);
+  assert.equal(routeProgress([], 0.5).coordinate, undefined);
+  assert.equal(routeProgress([road[0], road[0]], 0.5).coordinate.latitude, 0);
+});
+test('wallet success events require a valid amount and unsubscribe cleanly', () => {
+  const { subscribeWalletDeposits, publishWalletDeposit } = load('services/walletEvents.ts');
+  const notices = [];
+  const unsubscribe = subscribeWalletDeposits(event => notices.push(event));
+  publishWalletDeposit({ transactionId: 't1', amount: 5000 });
+  publishWalletDeposit({ transactionId: 't2', amount: -1 });
+  unsubscribe(); publishWalletDeposit({ transactionId: 't3', amount: 5000 });
+  assert.equal(notices.length, 1); assert.equal(notices[0].amount, 5000);
+});
+test('development arrival reaches pickup after 10 seconds and cleans up its timer', () => {
+  let now = 1000, state, cleanup, ticks = new Map(), counter = 0, arrivals = 0;
+  const source = fs.readFileSync(path.join(__dirname, '../src/hooks/useArrivalSimulation.ts'), 'utf8');
+  const exports = {};
+  const refs = [];
+  const react = { useState: initial => [initial, value => { state = value; }], useRef: initial => { const ref = { current: initial }; refs.push(ref); return ref; }, useEffect: effect => { cleanup = effect(); } };
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { exports, require: () => react, __DEV__: true, Date: { now: () => now }, setInterval: callback => { ticks.set(++counter, callback); return counter; }, clearInterval: id => ticks.delete(id) });
+  exports.useArrivalSimulation('ride-1', true, () => { arrivals++; });
+  now = 6000; [...ticks.values()].forEach(tick => tick());
+  assert.equal(state.progress, 0.5); assert.equal(arrivals, 0);
+  now = 11000; [...ticks.values()].forEach(tick => tick());
+  assert.equal(state.progress, 1); assert.equal(arrivals, 1); assert.equal(ticks.size, 0);
+  cleanup(); assert.equal(ticks.size, 0);
+});
