@@ -5,12 +5,17 @@ import type { RideEvent, RideSession } from '../services/rideEvents';
 import { formatXaf } from '../utils/formatCurrency';
 import { useWallet } from '../contexts/WalletContext';
 import type { NotificationEventKey } from '../services/notificationSounds';
+import { useActivity } from '../contexts/ActivityContext';
+import { rideActivity } from '../services/activityHistory';
+import type { RideActivityMeta } from '../services/activityHistory';
 
-export function useRideLifecycle() {
+export function useRideLifecycle(meta?: RideActivityMeta) {
   const [session, setSession] = useState<RideSession | null>(null);
   const latest = useRef(session);
   const { notify } = useNotifications();
   const { reserve, settle } = useWallet();
+  const { upsert } = useActivity();
+  useEffect(() => { if (session && meta) upsert(rideActivity(session, meta)); }, [session, meta?.pickup, meta?.destination, meta?.title, meta?.detail, upsert]);
   const applyEvent = useCallback((event: RideEvent) => {
     let next = transitionRide(latest.current, event);
     if (!next || next === latest.current) return false;

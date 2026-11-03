@@ -8,6 +8,7 @@ import { FloatingAppBar, appBarContentInset } from '../components/FloatingAppBar
 import type { AppTab } from '../components/FloatingAppBar';
 import { colors } from '../constants/colors';
 import { RoleHomeScreen } from './RoleHomeScreen';
+import { ActivityScreen } from './ActivityScreen';
 import { ProfileScreen } from './profile/ProfileScreen';
 import { MessagesScreen } from './messaging/MessagesScreen';
 
@@ -25,38 +26,7 @@ export function MainTabsScreen() {
         <View style={[styles.page, activeTab !== 'Home' && styles.hidden]}>
           <RoleHomeScreen contentBottomInset={contentBottomInset} onOpenActivity={() => setActiveTab('Activity')} />
         </View>
-        {activeTab === 'Activity' && (
-          <SafeAreaView style={styles.page} edges={['top', 'left', 'right']}>
-            <ScrollView contentContainerStyle={[styles.pageContent, { paddingBottom: contentBottomInset }]}>
-              <Text style={styles.heading}>Activity</Text>
-              <Text style={styles.subtitle}>Your rides and deliveries, all in one place.</Text>
-              <View style={styles.filters}>
-                {filters.map((item) => (
-                  <Pressable
-                    key={item}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: filter === item }}
-                    onPress={() => setFilter(item)}
-                    style={[styles.filter, filter === item && styles.selectedFilter]}
-                  >
-                    <Text style={[styles.filterLabel, filter === item && styles.selectedFilterLabel]}>{item}</Text>
-                  </Pressable>
-                ))}
-              </View>
-              <View style={styles.emptyState}>
-                <View style={styles.emptyIcon}>
-                  <Ionicons name={filter === 'Deliveries' ? 'cube-outline' : 'time-outline'} size={30} color={colors.primary} />
-                </View>
-                <Text style={styles.emptyTitle}>{filter === 'All' ? 'Your activity starts here' : `Your ${filter.toLowerCase()} will appear here`}</Text>
-                <Text style={styles.emptyDescription}>Track ongoing bookings and revisit past journeys from this screen.</Text>
-                <Pressable accessibilityRole="button" onPress={() => setActiveTab('Home')} style={styles.homeButton}>
-                  <Text style={styles.homeButtonLabel}>Go to Home</Text>
-                  <Ionicons name="arrow-forward" size={16} color={colors.primary} />
-                </Pressable>
-              </View>
-            </ScrollView>
-          </SafeAreaView>
-        )}
+        {activeTab === 'Activity' && <ActivityScreen contentBottomInset={contentBottomInset} />}
         {activeTab === 'Messages' && <MessagesScreen bottomInset={contentBottomInset} />}
         {activeTab === 'Account' && <ProfileScreen bottomInset={contentBottomInset} />}
       </View>

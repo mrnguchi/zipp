@@ -17,7 +17,7 @@
       "expo-font",
       ["expo-local-authentication", { "faceIDPermission": "Allow Zipp to use Face ID to unlock the app." }],
       ["expo-audio", { "microphonePermission": "Allow Zipp to record voice messages you choose to send.", "recordAudioAndroid": true, "enableBackgroundPlayback": false }],
-      ["expo-image-picker", { "photosPermission": "Allow Zipp to attach photos you choose to a conversation.", "cameraPermission": false, "microphonePermission": "Allow Zipp to record voice messages you choose to send." }],
+      ["expo-image-picker", { "photosPermission": "Allow Zipp to choose photos for conversations and delivery packages.", "cameraPermission": "Allow Zipp to take a photo of your delivery package.", "microphonePermission": "Allow Zipp to record voice messages you choose to send." }],
       ["expo-location", {
         "locationWhenInUsePermission": "Allow Zipp to show your current position on the map.",
         "locationAlwaysPermission": false,

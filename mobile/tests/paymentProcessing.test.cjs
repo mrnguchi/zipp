@@ -25,6 +25,7 @@ test('payment stays processing for three seconds, then debits once and opens the
   const { useRideLifecycle } = compile('hooks/useRideLifecycle.ts', name => {
     if (name === 'react') return react;
     if (name.includes('NotificationContext')) return { useNotifications: () => ({ notify: notice => notices.push(notice) }) };
+    if (name.includes('ActivityContext')) return { useActivity: () => ({ upsert: () => {} }) };
     if (name.includes('WalletContext')) return { useWallet: () => ({ reserve: () => true, settle: () => { charges++; return true; } }) };
     if (name.includes('formatCurrency')) return { formatXaf: value => `${value} XAF` };
     return events;

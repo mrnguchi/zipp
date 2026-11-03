@@ -35,6 +35,11 @@ test('GPS replaces coincident pickup, while distinct pickup and destination stay
   assert.equal(active.length, 2);
   assert.ok(active.some(marker => marker.element.className === 'pin current-location'));
   assert.ok(!active.some(marker => marker.element.className === 'pin pickup'));
+  window.updateZippMap({ pickup, destination, locationFocus: { coordinate: destination, requestId: 2 } });
+  active = markers.filter(marker => !marker.removed);
+  assert.equal(active.length, 2);
+  assert.ok(!active.some(marker => marker.element.className === 'pin destination'));
+  assert.ok(active.some(marker => marker.element.className === 'pin current-location'));
   window.updateZippMap({ pickup: { latitude: 4.17, longitude: 9.26 }, destination, locationFocus: { coordinate: pickup, requestId: 1 } });
   active = markers.filter(marker => !marker.removed);
   assert.equal(active.length, 3);
@@ -55,6 +60,10 @@ test('GPS replaces coincident pickup, while distinct pickup and destination stay
   assert.equal(car.element.children[1].style.transform, undefined, 'heading never rotates the label');
   window.updateZippMap({ pickup, destination });
   assert.equal(sources['driver-route'].features.length, 0);
+  window.updateZippMap({ pickup, destination, drivers: [{ id: 'courier', kind: 'courier', coordinate: pickup, arrivalLabel: 'Courier at pickup' }] });
+  const courier = markers.filter(marker => !marker.removed).find(marker => marker.element.className === 'pin courier');
+  assert.equal(courier.element.children[0].alt, 'Delivery courier');
+  assert.ok(courier.element.children[0].src.startsWith('data:image/png;base64,'));
 });
 
 test('route movement faces each road segment and keeps the final heading at arrival', () => {

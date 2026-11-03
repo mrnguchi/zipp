@@ -11,6 +11,8 @@ import { BiometricScreen } from '../screens/profile/BiometricScreen';
 import { NotificationSoundScreen } from '../screens/profile/NotificationSoundScreen';
 import { RoleGuideScreen } from '../screens/RoleGuideScreen';
 import { BookRideScreen } from '../screens/BookRideScreen';
+import { DeliveryScreen } from '../screens/DeliveryScreen';
+import { SavedPlacesScreen } from '../screens/SavedPlacesScreen';
 import { SelectRoleScreen } from '../screens/SelectRoleScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { PhoneVerificationScreen } from '../screens/PhoneVerificationScreen';
@@ -54,6 +56,12 @@ export function RootNavigator() {
       <Stack.Screen name="BiometricUnlock" component={BiometricScreen} />
       <Stack.Screen name="NotificationSound" component={NotificationSoundScreen} />
       {(['ManageProfile', 'PasswordSecurity', 'ChangePassword', 'ProfileNotifications', 'ProfileLanguage', 'ProfileFAQ', 'FAQArticle', 'ContactSupport', 'ReviewSupport', 'AboutUs'] as const).map(name => <Stack.Screen key={name} name={name} component={ProfileDetailScreen} />)}
+      <Stack.Screen name="SavedPlaces" component={SavedPlacesScreen} />
+      <Stack.Screen
+        name="Delivery"
+        component={DeliveryScreen}
+        options={{ headerTransparent: true, contentStyle: { backgroundColor: 'transparent' }, scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' } }}
+      />
       <Stack.Screen
         name="BookRide"
         component={BookRideScreen}
