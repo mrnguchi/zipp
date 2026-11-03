@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabsScreen } from '../screens/MainTabsScreen';
 import { RoleGuideScreen } from '../screens/RoleGuideScreen';
 import { BookRideScreen } from '../screens/BookRideScreen';
+import { DeliveryScreen } from '../screens/DeliveryScreen';
+import { SavedPlacesScreen } from '../screens/SavedPlacesScreen';
 import { SelectRoleScreen } from '../screens/SelectRoleScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { PhoneVerificationScreen } from '../screens/PhoneVerificationScreen';
@@ -34,6 +36,12 @@ export function RootNavigator() {
         }}
       />
       <Stack.Screen name="RoleGuide" component={RoleGuideScreen} />
+      <Stack.Screen name="SavedPlaces" component={SavedPlacesScreen} />
+      <Stack.Screen
+        name="Delivery"
+        component={DeliveryScreen}
+        options={{ headerTransparent: true, contentStyle: { backgroundColor: 'transparent' }, scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' } }}
+      />
       <Stack.Screen
         name="BookRide"
         component={BookRideScreen}

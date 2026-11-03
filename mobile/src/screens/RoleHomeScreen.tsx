@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,9 +6,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Animated, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActionButton } from '../components/ActionButton';
 import { NotificationList } from '../components/NotificationList';
+import { WalletSheetContent } from '../components/WalletSheetContent';
+import { WalletTopUp } from '../components/WalletTopUp';
+import type { WalletTopUpHandle } from '../components/WalletTopUp';
 import { useWallet } from '../contexts/WalletContext';
+import { useSavedPlaces } from '../contexts/SavedPlacesContext';
 import { AppText as Text } from '../components/AppText';
 import { RideMap } from '../components/maps/RideMap';
 import { colors } from '../constants/colors';
@@ -17,16 +20,14 @@ import { useHomeSheet } from '../hooks/useHomeSheet';
 import { useMyLocation } from '../hooks/useMyLocation';
 import type { RootStackParamList } from '../navigation/types';
 
-type Panel = 'wallet' | 'topup' | 'delivery' | 'notifications' | 'places' | null;
-type Place = 'Home' | 'Work';
+type Panel = 'wallet' | 'topup' | 'notifications' | null;
 type Props = { contentBottomInset?: number; onOpenActivity: () => void };
-const titles = { wallet: 'Your wallet', topup: 'Top up your wallet', delivery: 'Send a delivery', notifications: 'Notifications', places: 'Saved places' };
+const titles = { wallet: 'Your wallet', topup: 'Top up your wallet', notifications: 'Notifications', places: 'Saved places' };
 // Trip count remains a fixture; wallet funds come from shared session state.
 const previewSummary = { weeklyTrips: 12 };
 const messages = {
   wallet: 'Keep track of your balance and ride payments in one place.',
   topup: 'Add money to your Zipp Wallet with MTN MoMo or Orange Money.',
-  delivery: 'Send a package with Standard or Express delivery.',
   notifications: 'You’re all caught up. Check here for ride and payment updates.',
 };
 
@@ -42,17 +43,19 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
   const displayName = profileDisplayName(profile) || 'Nguchi';
   const wallet = useWallet();
   const [panel, setPanel] = useState<Panel>(null);
+  const topUpRef = useRef<WalletTopUpHandle>(null);
+  const closePanel = () => { if (panel === 'topup' && topUpRef.current) topUpRef.current.requestClose(); else setPanel(null); };
   useEffect(() => {
     if (route.params?.openWallet) {
       setPanel('topup'); navigation.setParams({ openWallet: false });
     }
   }, [route.params?.openWallet, navigation]);
-  const [places, setPlaces] = useState<Record<Place, string>>({ Home: '', Work: '' });
-  const [draft, setDraft] = useState(places);
+  const saved = useSavedPlaces();
+  const places = { Home: saved.places.find(place => place.kind === 'home'), Work: saved.places.find(place => place.kind === 'work') };
   const [hidden, setHidden] = useState(false);
   const hour = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Africa/Douala' }).format(new Date()));
   const greeting = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
-  const openPlaces = () => { setDraft(places); setPanel('places'); };
+  const openPlaces = () => navigation.navigate('SavedPlaces');
   const bookRide = () => navigation.navigate('BookRide', { focusDestination: true });
 
   return <View style={styles.screen} onLayout={event => { if (event.nativeEvent.layout.height > 0) setScreenHeight(event.nativeEvent.layout.height); }}>
@@ -94,15 +97,15 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
         <View style={styles.row}>
           {([
             { label: 'Ride', image: require('../../assets/ride.png'), action: () => navigation.navigate('BookRide') },
-            { label: 'Delivery', image: require('../../assets/delivery-button.png'), action: () => setPanel('delivery') },
+            { label: 'Delivery', image: require('../../assets/delivery-button.png'), action: () => navigation.navigate('Delivery') },
             { label: 'Wallet', image: require('../../assets/wallet.png'), action: () => setPanel('wallet') },
           ] as const).map(item => <Pressable key={item.label} accessibilityRole="button" onPress={item.action} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Image source={item.image} resizeMode="contain" style={styles.actionIcon} /><Text style={styles.actionText}>{item.label}</Text></Pressable>)}
         </View>
         <View>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Saved Places</Text><Pressable accessibilityRole="button" onPress={openPlaces} style={styles.seeAll}><Text style={styles.smallText}>See all</Text><Ionicons name="chevron-forward" size={13} color={colors.secondaryText} /></Pressable></View>
           <View style={styles.savedCard}>
-            {(['Home', 'Work'] as const).map((place, index) => <Pressable key={place} accessibilityRole="button" accessibilityLabel={places[place] ? `Book a ride to ${place}, ${places[place]}` : `Add ${place.toLowerCase()} address`} onPress={() => places[place] ? navigation.navigate('BookRide', { destinationLabel: places[place], focusDestination: true }) : openPlaces()} style={({ pressed }) => [styles.savedRow, index === 1 && styles.divider, pressed && styles.pressed]}>
-              <View style={styles.placeIcon}><Ionicons name={place === 'Home' ? 'home' : 'briefcase'} size={19} color={colors.primary} /></View><View style={{ flex: 1, gap: 2 }}><Text style={styles.placeName}>{place}</Text><Text style={styles.smallText} numberOfLines={1}>{places[place] || `Add ${place.toLowerCase()} address`}</Text></View><Ionicons name={places[place] ? 'chevron-forward' : 'add'} size={17} color={places[place] ? "#929B99" : colors.yellow} />
+            {(['Home', 'Work'] as const).map((place, index) => <Pressable key={place} accessibilityRole="button" accessibilityLabel={places[place] ? `Book a ride to ${place}, ${places[place]?.label}` : `Add ${place.toLowerCase()} address`} onPress={() => places[place] ? navigation.navigate('BookRide', { destinationLabel: places[place]?.label, destinationCoordinate: places[place]?.coordinate }) : navigation.navigate('SavedPlaces', { kind: place === 'Home' ? 'home' : 'work' })} style={({ pressed }) => [styles.savedRow, index === 1 && styles.divider, pressed && styles.pressed]}>
+              <View style={styles.placeIcon}><Ionicons name={place === 'Home' ? 'home' : 'briefcase'} size={19} color={colors.primary} /></View><View style={{ flex: 1, gap: 2 }}><Text style={styles.placeName}>{place}</Text><Text style={styles.smallText} numberOfLines={1}>{places[place]?.label || `Add ${place.toLowerCase()} address`}</Text></View><Ionicons name={places[place] ? 'chevron-forward' : 'add'} size={17} color={places[place] ? "#929B99" : colors.yellow} />
             </Pressable>)}
           </View>
         </View>
@@ -119,18 +122,13 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
         </View>
         </ScrollView>
       </Animated.View>
-    <Modal transparent visible={panel !== null} animationType="slide" onRequestClose={() => setPanel(null)}>
+    <Modal transparent visible={panel !== null} animationType="slide" onRequestClose={closePanel}>
       <KeyboardAvoidingView style={styles.modalRoot} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close panel" onPress={() => setPanel(null)} style={styles.backdrop} />
-        <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 24) }]} accessibilityViewIsModal>
-          <View style={styles.panelHandle} /><View style={styles.between}><Text style={styles.panelTitle}>{panel && titles[panel]}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={() => setPanel(null)} style={styles.roundButton}><Ionicons name="close" size={22} color={colors.navy} /></Pressable></View>
-          {panel === 'places' ? <>
-            <Text style={styles.panelCopy}>Add your usual landmarks for quicker booking. These shortcuts are kept for this app session.</Text>
-            {(['Home', 'Work'] as const).map(place => <View key={place} style={{ gap: 6 }}><Text style={styles.placeName}>{place}</Text><TextInput accessibilityLabel={`${place} address`} value={draft[place]} onChangeText={text => setDraft(current => ({ ...current, [place]: text }))} placeholder={`Enter ${place.toLowerCase()} address or landmark`} placeholderTextColor="#8C9693" style={styles.addressInput} maxLength={160} /></View>)}
-            <ActionButton accessibilityLabel="Save places" onPress={() => { setPlaces({ Home: draft.Home.trim(), Work: draft.Work.trim() }); setPanel(null); }}>Save places</ActionButton>
-          </> : panel === 'notifications' ? <NotificationList /> : <>
-            <View style={styles.panelIcon}><Ionicons name={panel === 'delivery' ? 'cube-outline' : 'wallet-outline'} size={30} color={colors.primary} /></View><Text style={styles.panelCopy}>{panel && messages[panel]}</Text>
-            {panel === 'wallet' && <ActionButton accessibilityLabel="Top up" onPress={() => setPanel('topup')}>Top up</ActionButton>}
+        <Pressable accessibilityRole="button" accessibilityLabel="Close panel" onPress={closePanel} style={styles.backdrop} />
+        <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 24) }, (panel === 'wallet' || panel === 'topup') && { height: height * 0.8 }]} accessibilityViewIsModal>
+          <View style={styles.panelHandle} /><View style={styles.between}><Text style={styles.panelTitle}>{panel && titles[panel]}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={closePanel} style={styles.roundButton}><Ionicons name="close" size={22} color={colors.navy} /></Pressable></View>
+          {panel === 'wallet' ? <WalletSheetContent onTopUp={() => setPanel('topup')} /> : panel === 'topup' ? <WalletTopUp ref={topUpRef} onClose={() => setPanel(null)} onBack={() => setPanel('wallet')} /> : panel === 'notifications' ? <NotificationList /> : <>
+            <View style={styles.panelIcon}><Ionicons name="wallet-outline" size={30} color={colors.primary} /></View><Text style={styles.panelCopy}>{panel && messages[panel]}</Text>
           </>}
         </View>
       </KeyboardAvoidingView>

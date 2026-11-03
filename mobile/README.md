@@ -168,3 +168,84 @@ a nearby street/landmark label. The receipt uses that label, or precise coordina
 if the lookup fails, never “My current location”. Lookups are canceled when pickup
 changes and time out after 10 seconds. This reverse lookup sends the selected pickup
 coordinates to the configured Photon-compatible provider.
+
+## Delivery flow
+
+Home’s Delivery action opens `DeliveryScreen`, using the grayscale map, expandable
+sheet and rounded green/yellow CTAs. Booking has three steps: route and
+Standard/Express mode, sender/recipient/package details, then fare/wallet review.
+Both stops must have real coordinates and a routable road connection. Express
+uses the PRD’s 1.5x multiplier on a development fare formula; actual quotes must
+come from the backend. Phone numbers, names, package description, distinct stops,
+and available wallet funds are validated before confirmation.
+
+Location search uses the reusable `PlacePickerSheet`, GPS pickup, and a nearly
+full-screen map with `MapStopCard`, live suggestions, Done, and optional saved
+locations. Saved locations and contact notes are session-only. GPS pickup labels
+are reverse-geocoded; route sources and attribution match ride booking.
+
+The lifecycle is courier arriving → pickup → in transit → destination handover →
+PIN verified → three-second payment processing → paid receipt → rating. The map
+uses the delivery-button asset as its courier marker, yellow approach route and
+green delivery route. Development arrival and transit each run for 10 seconds.
+Long-press **Your delivery** to simulate collection or recipient PIN verification;
+these controls are excluded from release UI. The recipient PIN is a development
+fixture (`7352`); sender sharing opens the OS share sheet. Sharing delivery details
+does not fabricate a live tracking URL.
+
+Delivery funds use the shared wallet hold/settlement rules. Before collection,
+cancellation releases the full hold with no fee. Once collected, direct
+cancellation is blocked and the user opens the support/return-request note panel.
+Only a verified handover event permits payment. Duplicate events and repeated
+settlement are rejected. Payment failures remain pending and allow retry. Courier
+arrival, collection, destination arrival, cancellation and payment emit in-app
+notifications. `publishDeliveryEvent` is the adapter for authenticated server events.
+
+Remaining integrations include dispatch/GPS, real delivery quotes, server-side
+PIN verification, wallet transactions, courier chat/call details, support tickets,
+return handling, persistent saved places, and externally shareable tracking links.
+The new flow performs local development state and funds changes only.
+
+Package details now replace the handling-instructions field with an optional
+photo section. `expo-image-picker` opens the native camera or gallery, retains
+one selected photo in the delivery draft, and supports retake, replacement and
+removal. The image appears in review and courier tracking. Camera permission is
+requested only after tapping the camera action; gallery uses the system picker.
+Microphone permission is disabled. Native builds must be rebuilt after adding
+the picker plugin. Photos currently remain on-device/session-only; storing and
+uploading them to the backend remains an integration task.
+
+Delivery now starts with **I’m receiving** selected first; **I’m sending** is the
+secondary option. The profile pre-fills the booker as recipient for receiving and
+sender for sending. The current-location shortcut targets drop-off for receiving
+and pickup for sending, requesting GPS only after the user taps it. Either stop
+can still be searched or chosen on the map, with reverse lookup for raw GPS labels.
+Switching perspectives swaps the two contacts and endpoints so the booker stays
+on their own end, retaining package/photo details and restoring values when switched back.
+The form presents “Your details” first, then the sender or recipient contact.
+
+Tracking and notices distinguish courier arrival at the sender from arrival at
+the receiver. Receiving displays “Your delivery PIN” with receive-before-sharing
+instructions and hides the “Share PIN with recipient” action. Sending retains
+recipient PIN sharing. Contact actions target the other person, and receipts use
+role-appropriate wording. The perspective is frozen into the confirmed session.
+The booking user’s wallet pays in both modes; recipient handover verification
+remains required before settlement.
+
+## Activity
+
+The Activity tab now uses a dedicated screen with wide rectangular light-gray
+cards, softly rounded corners, route details, status badges, dates and fare/payment
+labels. Its title sits closer to the top safe area. Search, ride/delivery tabs,
+status filtering and Cameroon-time date groups are functional. Cards open custom
+detail sheets with route, payment breakdown, driver/courier details and any rating;
+users can share a summary or start a new booking from completed/canceled entries.
+
+`ActivityProvider` collects ride and delivery lifecycle changes by booking ID.
+Status updates replace existing entries while retaining the original booking date.
+Ride cancellation charges and released delivery funds are represented separately;
+pending payments are never labeled paid. PINs and package photos are not stored in
+activity records. Development builds include three terminal sample activities so
+the design can be reviewed immediately; release builds start empty. Actual local
+bookings update the list. History currently lasts for the app session; backend
+history/persistence and live-trip resumption must be integrated before launch.

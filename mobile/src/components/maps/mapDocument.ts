@@ -2,6 +2,7 @@ import { createMapStyle, mapTheme } from './mapTheme';
 import { colors } from '../../constants/colors';
 import { currentLocationIcon } from './currentLocationAsset';
 import { driverCarIcon } from './driverCarAsset';
+import { courierIcon } from './courierAsset';
 
 // Pinned browser renderer inside Expo's supported WebView. Style and trip data
 // stay separate, so recoloring the base map never desaturates the green route.
@@ -34,9 +35,9 @@ function lnglat(p){return [p.longitude,p.latitude];}
 function addPin(point,type,label){
   if(!point)return;
   var el=document.createElement('div');el.className='pin '+type;
-  if(type==='car'){
+  if(type==='car'||type==='courier'){
     el.style.cssText='position:relative;width:46px;height:46px;border:0;background:transparent;box-shadow:none;transition:transform 80ms linear;';
-    var car=document.createElement('img');car.src=${JSON.stringify(driverCarIcon)};car.alt='Driver car';car.style.cssText='width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 3px #0003);';el.appendChild(car);
+    var car=document.createElement('img');car.src=type==='courier'?${JSON.stringify(courierIcon)}:${JSON.stringify(driverCarIcon)};car.alt=type==='courier'?'Delivery courier':'Driver car';car.style.cssText='width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 3px #0003);';el.appendChild(car);
     var bubble=document.createElement('div');bubble.textContent=label||'';bubble.style.cssText='position:absolute;bottom:50px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:9px 12px;border-radius:14px;background:#FFFFFF;color:#121B26;font:600 12px sans-serif;box-shadow:0 3px 12px #0002;border-bottom:3px solid ${colors.yellow};';bubble.style.display=label?'block':'none';el.appendChild(bubble);
     return {marker:new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map),bubble:bubble};
   }
@@ -53,13 +54,14 @@ function update(data){
   markers.forEach(function(m){m.remove();});markers=[];
   var gps=current.locationFocus&&current.locationFocus.coordinate;
   var pickupAtGps=gps&&current.pickup&&Math.abs(gps.latitude-current.pickup.latitude)<0.00002&&Math.abs(gps.longitude-current.pickup.longitude)<0.00002;
+  var destinationAtGps=gps&&current.destination&&Math.abs(gps.latitude-current.destination.latitude)<0.00002&&Math.abs(gps.longitude-current.destination.longitude)<0.00002;
   if(!pickupAtGps)addPin(current.pickup,'pickup');
-  addPin(current.destination,'destination');
+  if(!destinationAtGps)addPin(current.destination,'destination');
   if(current.locationFocus)addPin(current.locationFocus.coordinate,'current-location');
   var activeDriverIds=[];
   (current.drivers||[]).forEach(function(d,index){
     var id=d.id||String(index);activeDriverIds.push(id);
-    if(!driverMarkers[id])driverMarkers[id]=addPin(d.coordinate,'car',d.arrivalLabel);
+    if(!driverMarkers[id])driverMarkers[id]=addPin(d.coordinate,d.kind==='courier'?'courier':'car',d.arrivalLabel);
     else{driverMarkers[id].marker.setLngLat(lnglat(d.coordinate));driverMarkers[id].bubble.textContent=d.arrivalLabel||'';driverMarkers[id].bubble.style.display=d.arrivalLabel?'block':'none';}
   });
   Object.keys(driverMarkers).forEach(function(id){if(activeDriverIds.indexOf(id)<0){driverMarkers[id].marker.remove();delete driverMarkers[id];}});

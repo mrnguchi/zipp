@@ -15,6 +15,8 @@ import { RoleProvider } from './contexts/RoleContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { WalletProvider } from './contexts/WalletContext';
+import { ActivityProvider } from './contexts/ActivityContext';
+import { SavedPlacesProvider } from './contexts/SavedPlacesContext';
 import './i18n';
 import { RootNavigator } from './navigation/RootNavigator';
 import { queryClient } from './query/client';
@@ -38,13 +40,17 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <RoleProvider>
           <ProfileProvider>
+          <SavedPlacesProvider>
           <NotificationProvider>
           <WalletProvider>
+          <ActivityProvider>
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>
+          </ActivityProvider>
           </WalletProvider>
           </NotificationProvider>
+          </SavedPlacesProvider>
           </ProfileProvider>
         </RoleProvider>
       </QueryClientProvider>

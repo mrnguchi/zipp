@@ -11,7 +11,7 @@ type ActionButtonProps = PropsWithChildren<{
   onPress: PressableProps['onPress'];
   accessibilityLabel: string;
   disabled?: boolean;
-  arrow?: 'arrow-forward' | 'arrow-back';
+  arrow?: 'arrow-forward' | 'arrow-back' | 'add';
 }>;
 
 export function ActionButton({

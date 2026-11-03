@@ -36,7 +36,7 @@ export function PhoneVerificationScreen() {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const codeInput = useRef<TextInputInstance>(null);
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(__DEV__ ? '123456' : '');
   const [error, setError] = useState('');
 
   const verifyCode = () => {

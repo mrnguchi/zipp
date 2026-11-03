@@ -25,6 +25,7 @@ import { routeProgress } from '../utils/routeProgress';
 import { useRideLifecycle } from '../hooks/useRideLifecycle';
 import { useArrivalSimulation } from '../hooks/useArrivalSimulation';
 import { useWallet } from '../contexts/WalletContext';
+import { useSavedPlaces } from '../contexts/SavedPlacesContext';
 import { usePickupAddress } from '../hooks/usePickupAddress';
 import { formatXaf } from '../utils/formatCurrency';
 import type { PlaceSuggestion } from '../services/placeSearch';
@@ -49,12 +50,12 @@ export function BookRideScreen() {
   const sheet = useHomeSheet(screenHeight, insets.top + 68, 0.58);
   const { locating, locationFocus, locate } = useMyLocation();
   const useLocationAsPickup = useRef(false);
-  const [stops, setStops] = useState<Record<StopKey, Stop>>({ pickup: { label: '' }, destination: { label: params?.destinationLabel ?? '' } });
+  const [stops, setStops] = useState<Record<StopKey, Stop>>({ pickup: { label: '' }, destination: { label: params?.destinationLabel ?? '', coordinate: params?.destinationCoordinate } });
   const [selectedRide, setSelectedRide] = useState(0);
   const [page, setPage] = useState<'options' | 'driver'>('options');
   const [messageDraft, setMessageDraft] = useState('');
   const [cancellationOpen, setCancellationOpen] = useState(false);
-  const { session, applyEvent } = useRideLifecycle();
+  const { session, applyEvent } = useRideLifecycle({ pickup: stops.pickup.label, destination: stops.destination.label, title: `${rides[selectedRide].name} ride`, detail: ['Toyota Yaris', 'Lexus RX', 'Mercedes-Benz GLE'][selectedRide] + ' · SW 681 BS' });
   const wallet = useWallet();
   const phase = session?.phase ?? 'arriving';
   const [rating, setRating] = useState(0);
@@ -107,7 +108,8 @@ export function BookRideScreen() {
   const driverArrivalLabel = driverApproach.route
     ? `${(driverApproach.route.distanceMeters * (1 - arrivalProgress) / 1000).toFixed(1)} km away · ${Math.max(1, Math.round(driverApproach.route.durationSeconds * (1 - arrivalProgress) / 60))} min`
     : driverApproach.status === 'error' ? 'Driver location' : 'Calculating arrival…';
-  const [savedLocations, setSavedLocations] = useState<Stop[]>([]);
+  const savedPlaces = useSavedPlaces();
+  const savedLocations = savedPlaces.places;
   const [mapCardHeight, setMapCardHeight] = useState(190);
   const mapBottomInset = mapCardHeight + Math.max(insets.bottom, 16) + 16 + keyboardHeight;
   const isMapLocationSaved = Boolean(mapDraft.coordinate && savedLocations.some(place => place.coordinate?.latitude === mapDraft.coordinate?.latitude && place.coordinate?.longitude === mapDraft.coordinate?.longitude));
@@ -184,9 +186,7 @@ export function BookRideScreen() {
   }
   function toggleSavedLocation() {
     if (!mapDraft.coordinate || !mapDraft.label.trim()) return;
-    setSavedLocations(current => isMapLocationSaved
-      ? current.filter(place => place.coordinate?.latitude !== mapDraft.coordinate?.latitude || place.coordinate?.longitude !== mapDraft.coordinate?.longitude)
-      : [...current, { ...mapDraft, label: mapDraft.label.trim() }]);
+    navigation.navigate('SavedPlaces', { location: { label: mapDraft.label.trim(), coordinate: mapDraft.coordinate } });
   }
   function confirmRide() {
     if (!canAffordRide) { setPanel('wallet'); return; }
@@ -246,10 +246,10 @@ export function BookRideScreen() {
           {mapSuggestions.status === 'loading' && <View style={styles.searchStatus}><ActivityIndicator size="small" color={colors.primary} /><Text style={styles.small}>Finding places…</Text></View>}
           {mapSuggestions.status === 'error' && <Pressable accessibilityRole="button" onPress={mapSuggestions.retry} style={styles.optionRow}><Ionicons name="refresh" size={18} color={colors.primary} /><Text style={styles.optionText}>Couldn’t load places. Tap to retry.</Text></Pressable>}
           {mapSuggestions.status === 'ready' && mapSuggestions.places.length === 0 && <Text style={styles.small}>No matching places. Try a nearby landmark or tap the map.</Text>}
-          {mapSuggestions.places.map(place => <Pressable key={place.id} accessibilityRole="button" accessibilityLabel={`Pin ${place.label}`} onPress={() => chooseMapSuggestion(place)} style={styles.optionRow}><Ionicons name="location-outline" size={21} color={colors.primary} /><View style={styles.flex}><Text style={styles.optionText}>{place.title}</Text>{Boolean(place.subtitle) && <Text style={styles.small}>{place.subtitle}</Text>}</View></Pressable>)}
+          {mapSuggestions.places.map(place => <Pressable key={place.id} accessibilityRole="button" accessibilityLabel={`Pin ${place.label}`} onPress={() => chooseMapSuggestion(place)} style={styles.optionRow}><Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.optionIcon} /><View style={styles.flex}><Text style={styles.optionText}>{place.title}</Text>{Boolean(place.subtitle) && <Text style={styles.small}>{place.subtitle}</Text>}</View></Pressable>)}
           {mapSuggestions.places.length > 0 && <Text style={styles.small}>Photon · © OpenStreetMap contributors</Text>}
         </ScrollView>}
-        <View style={styles.mapCardActions}><View style={styles.flex}><ActionButton accessibilityLabel="Done selecting location" disabled={!mapDraft.coordinate || !mapDraft.label.trim()} onPress={finishMapSelection}>Done</ActionButton></View><Pressable accessibilityRole="button" accessibilityLabel={isMapLocationSaved ? 'Unsave location' : 'Save location'} accessibilityState={{ selected: isMapLocationSaved, disabled: !mapDraft.coordinate || !mapDraft.label.trim() }} disabled={!mapDraft.coordinate || !mapDraft.label.trim()} onPress={toggleSavedLocation} style={[styles.saveLocationButton, isMapLocationSaved && styles.savedLocationButton, (!mapDraft.coordinate || !mapDraft.label.trim()) && { opacity: 0.4 }]}><Image source={require('../../assets/save-location.png')} resizeMode="contain" style={styles.optionIcon} /></Pressable></View>
+        <View style={styles.mapCardActions}><View style={styles.flex}><ActionButton accessibilityLabel="Done selecting location" disabled={!mapDraft.coordinate || !mapDraft.label.trim()} onPress={finishMapSelection}>Done</ActionButton></View><Pressable accessibilityRole="button" accessibilityLabel={isMapLocationSaved ? 'Edit saved location' : 'Save location'} accessibilityState={{ selected: isMapLocationSaved, disabled: !mapDraft.coordinate || !mapDraft.label.trim() }} disabled={!mapDraft.coordinate || !mapDraft.label.trim()} onPress={toggleSavedLocation} style={[styles.saveLocationButton, isMapLocationSaved && styles.savedLocationButton, (!mapDraft.coordinate || !mapDraft.label.trim()) && { opacity: 0.4 }]}><Image source={require('../../assets/save-location.png')} resizeMode="contain" style={styles.optionIcon} /></Pressable></View>
       </View>
     </KeyboardAvoidingView>}
     <Animated.View pointerEvents={mapSelection ? 'none' : 'auto'} accessibilityElementsHidden={Boolean(mapSelection)} importantForAccessibility={mapSelection ? 'no-hide-descendants' : 'auto'} style={[styles.sheet, { height: sheet.expandedHeight, transform: [{ translateY: Animated.add(sheet.translateY, mapSheetOffset) }] }]}>
@@ -293,7 +293,7 @@ export function BookRideScreen() {
             {suggestions.status === 'loading' && <View style={styles.searchStatus}><ActivityIndicator size="small" color={colors.primary} /><Text style={styles.small}>Finding places…</Text></View>}
             {suggestions.status === 'error' && <Pressable accessibilityRole="button" onPress={suggestions.retry} style={styles.optionRow}><Ionicons name="refresh" size={20} color={colors.primary} /><Text style={styles.optionText}>Couldn’t load places. Tap to retry.</Text></Pressable>}
             {suggestions.status === 'ready' && suggestions.places.length === 0 && <Text style={styles.small}>No matching places found. Try a nearby landmark or choose on the map.</Text>}
-            {suggestions.places.map(place => <Pressable key={place.id} accessibilityRole="button" accessibilityLabel={`Select ${place.label}`} onPress={() => chooseSuggestion(place)} style={styles.optionRow}><Ionicons name="location-outline" size={22} color={colors.primary} /><View style={styles.flex}><Text style={styles.optionText}>{place.title}</Text>{Boolean(place.subtitle) && <Text style={styles.small}>{place.subtitle}</Text>}</View><Ionicons name="chevron-forward" size={18} color={colors.secondaryText} /></Pressable>)}
+            {suggestions.places.map(place => <Pressable key={place.id} accessibilityRole="button" accessibilityLabel={`Select ${place.label}`} onPress={() => chooseSuggestion(place)} style={styles.optionRow}><Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.optionIcon} /><View style={styles.flex}><Text style={styles.optionText}>{place.title}</Text>{Boolean(place.subtitle) && <Text style={styles.small}>{place.subtitle}</Text>}</View><Ionicons name="chevron-forward" size={18} color={colors.secondaryText} /></Pressable>)}
             {suggestions.places.length > 0 && <Pressable accessibilityRole="link" onPress={() => { void Linking.openURL('https://www.openstreetmap.org/copyright'); }}><Text style={styles.small}>Place search: Photon · © OpenStreetMap contributors</Text></Pressable>}
             {panel === 'pickup' && <Pressable accessibilityRole="button" disabled={locating} onPress={() => { useLocationAsPickup.current = true; void locate(); setPanel(null); }} style={styles.optionRow}><Image source={require('../../assets/current-location.png')} resizeMode="contain" style={styles.optionIcon} /><Text style={styles.optionText}>Use my current location</Text></Pressable>}
             <Pressable accessibilityRole="button" onPress={() => openMap(panel)} style={styles.optionRow}><Image source={require('../../assets/map-icon.png')} resizeMode="contain" style={styles.optionIcon} /><Text style={styles.optionText}>Choose on map</Text></Pressable>

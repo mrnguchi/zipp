@@ -15,6 +15,11 @@
       "expo-localization",
       "expo-asset",
       "expo-font",
+      ["expo-image-picker", {
+        "photosPermission": "Allow Zipp to select a photo of your delivery package.",
+        "cameraPermission": "Allow Zipp to take a photo of your delivery package.",
+        "microphonePermission": false
+      }],
       ["expo-location", {
         "locationWhenInUsePermission": "Allow Zipp to show your current position on the map.",
         "locationAlwaysPermission": false,
