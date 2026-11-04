@@ -20,12 +20,15 @@ import { useHomeSheet } from '../hooks/useHomeSheet';
 import { useMyLocation } from '../hooks/useMyLocation';
 import { usePlaceSuggestions } from '../hooks/usePlaceSuggestions';
 import { useRoadRoute } from '../hooks/useRoadRoute';
+import type { RoadRoute } from '../services/roadRoute';
 import { sampleDriverLocation } from '../utils/sampleDriverLocation';
 import { routeProgress } from '../utils/routeProgress';
 import { useRideLifecycle } from '../hooks/useRideLifecycle';
 import { useArrivalSimulation } from '../hooks/useArrivalSimulation';
 import { useWallet } from '../contexts/WalletContext';
 import { useSavedPlaces } from '../contexts/SavedPlacesContext';
+import { useMessaging } from '../contexts/MessagingContext';
+import { driverConversation } from '../services/messaging';
 import { usePickupAddress } from '../hooks/usePickupAddress';
 import { formatXaf } from '../utils/formatCurrency';
 import type { PlaceSuggestion } from '../services/placeSearch';
@@ -39,7 +42,7 @@ const rides = [
 ] as const;
 type Stop = { label: string; coordinate?: MapCoordinate };
 type StopKey = 'pickup' | 'destination';
-type Panel = StopKey | 'message' | 'safety' | 'events' | 'wallet' | null;
+type Panel = StopKey | 'safety' | 'events' | 'wallet' | null;
 
 export function BookRideScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -53,10 +56,11 @@ export function BookRideScreen() {
   const [stops, setStops] = useState<Record<StopKey, Stop>>({ pickup: { label: '' }, destination: { label: params?.destinationLabel ?? '', coordinate: params?.destinationCoordinate } });
   const [selectedRide, setSelectedRide] = useState(0);
   const [page, setPage] = useState<'options' | 'driver'>('options');
-  const [messageDraft, setMessageDraft] = useState('');
+  const [bookedRoute, setBookedRoute] = useState<RoadRoute>();
   const [cancellationOpen, setCancellationOpen] = useState(false);
   const { session, applyEvent } = useRideLifecycle({ pickup: stops.pickup.label, destination: stops.destination.label, title: `${rides[selectedRide].name} ride`, detail: ['Toyota Yaris', 'Lexus RX', 'Mercedes-Benz GLE'][selectedRide] + ' · SW 681 BS' });
   const wallet = useWallet();
+  const { ensureConversation } = useMessaging();
   const phase = session?.phase ?? 'arriving';
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
@@ -96,7 +100,12 @@ export function BookRideScreen() {
       ? { ...current, pickup: { ...current.pickup, label } } : current);
   });
   const roadRoute = useRoadRoute(mapPickup, mapDestination);
-  const journeyMovement = useMemo(() => routeProgress(roadRoute.route?.coordinates ?? [], journeyProgress), [roadRoute.route, journeyProgress]);
+  // Keep the confirmed road geometry through arrival, ride start and payment.
+  const passengerRoute = page === 'driver' ? bookedRoute ?? roadRoute.route : roadRoute.route;
+  useEffect(() => {
+    if (page === 'driver' && !bookedRoute && roadRoute.route) setBookedRoute(roadRoute.route);
+  }, [page, bookedRoute, roadRoute.route]);
+  const journeyMovement = useMemo(() => routeProgress(passengerRoute?.coordinates ?? [], journeyProgress), [passengerRoute, journeyProgress]);
   const sampleDriver = useMemo(() => stops.pickup.coordinate ? sampleDriverLocation(stops.pickup.coordinate) : undefined, [stops.pickup.coordinate?.latitude, stops.pickup.coordinate?.longitude]);
   const driverStart = page === 'driver' && !mapSelection && phase === 'arriving' ? sampleDriver : undefined;
   // Prepare the approach as soon as pickup is known so the 10-second fixture
@@ -123,10 +132,10 @@ export function BookRideScreen() {
   const footerHeight = 96 + Math.max(insets.bottom, 16);
   const model = ['Toyota Yaris', 'Lexus RX', 'Mercedes-Benz GLE'][selectedRide];
   const cameraCoordinates = useMemo(() => [
-    ...(roadRoute.route?.coordinates ?? [mapPickup, mapDestination].filter((point): point is MapCoordinate => Boolean(point))),
+    ...(passengerRoute?.coordinates ?? [mapPickup, mapDestination].filter((point): point is MapCoordinate => Boolean(point))),
     ...(page === 'driver' && phase === 'arriving' ? driverApproach.route?.coordinates ?? [] : []),
-  ], [roadRoute.route, mapPickup, mapDestination, page, phase, driverApproach.route]);
-  const journeyLabel = roadRoute.route ? `About ${Math.max(1, Math.round(roadRoute.route.durationSeconds * (1 - journeyProgress) / 60))} min to your destination` : 'Follow your trip on the map';
+  ], [passengerRoute, mapPickup, mapDestination, page, phase, driverApproach.route]);
+  const journeyLabel = passengerRoute ? `About ${Math.max(1, Math.round(passengerRoute.durationSeconds * (1 - journeyProgress) / 60))} min to your destination` : 'Follow your trip on the map';
   useEffect(() => {
     if (!session) return;
     scroll.current?.scrollTo({ y: 0, animated: true });
@@ -195,7 +204,7 @@ export function BookRideScreen() {
     else {
       // Server-issued PIN/session replaces this development fixture at integration.
       const accepted = applyEvent({ type: 'confirmed', rideId: `ride-${Date.now()}`, pin: '4826', fare: Number(ride.priceXaf.replace(/,/g, '')) });
-      if (accepted) { setRating(0); setFeedback(''); setMapSelection(null); setPage('driver'); scroll.current?.scrollTo({ y: 0, animated: false }); }
+      if (accepted) { setBookedRoute(roadRoute.route); setRating(0); setFeedback(''); setMapSelection(null); setPage('driver'); scroll.current?.scrollTo({ y: 0, animated: false }); }
       else setPanel('wallet');
     }
   }
@@ -206,8 +215,16 @@ export function BookRideScreen() {
     // Local cancellation only. The server must authorize the fee and debit the
     // wallet atomically with cancellation when booking/payments are connected.
     if (!session || !applyEvent({ type: 'canceled', rideId: session.id })) return;
-    setCancellationOpen(false); setPage('options'); setPanel(null); setMessageDraft('');
+    setCancellationOpen(false); setPage('options'); setPanel(null);
     scroll.current?.scrollTo({ y: 0, animated: false });
+  }
+  function contactDriver(mode: 'message' | 'voice') {
+    if (!session) return;
+    const conversationId = `ride:${session.id}`;
+    ensureConversation(driverConversation(conversationId, { pickup: stops.pickup.label, destination: stops.destination.label, vehicle: `${model} · White`, plate: 'SW 681 BS' }));
+    setPanel(null);
+    if (mode === 'message') navigation.navigate('Conversation', { conversationId });
+    else navigation.navigate('Call', { conversationId, mode: 'voice' });
   }
   async function shareTrip() {
     try { await Share.share({ message: `I’m riding with Zipp. Driver: Alex. Car: ${model}, white, SW 681 BS. Pickup: ${stops.pickup.label}. Destination: ${stops.destination.label}.` }); } catch { /* The share sheet can be dismissed without affecting the ride. */ }
@@ -220,13 +237,13 @@ export function BookRideScreen() {
     ? <View style={styles.routeSummary}><ActivityIndicator size="small" color={colors.primary} /><Text style={styles.small}>Finding a driving route…</Text></View>
     : roadRoute.status === 'error'
       ? <Pressable accessibilityRole="button" onPress={roadRoute.retry} style={styles.routeSummary}><Ionicons name="refresh" size={17} color={colors.primary} /><Text style={styles.routeSummaryText}>No road route available. Tap to retry or adjust your stops.</Text></Pressable>
-      : roadRoute.route
-        ? <View style={styles.routeSummary}><Ionicons name="navigate-outline" size={17} color={colors.primary} /><Text style={styles.routeSummaryText}>{(roadRoute.route.distanceMeters / 1000).toFixed(1)} km · About {Math.max(1, Math.round(roadRoute.route.durationSeconds / 60))} min driving</Text></View>
+      : passengerRoute
+        ? <View style={styles.routeSummary}><Ionicons name="navigate-outline" size={17} color={colors.primary} /><Text style={styles.routeSummaryText}>{(passengerRoute.distanceMeters / 1000).toFixed(1)} km · About {Math.max(1, Math.round(passengerRoute.durationSeconds / 60))} min driving</Text></View>
         : null;
 
   return <View style={styles.screen} onLayout={event => setScreenHeight(event.nativeEvent.layout.height)}>
     <StatusBar style="dark" />
-    <RideMap pickup={mapPickup} destination={mapDestination} route={phase === 'in_progress' ? journeyMovement.remaining : roadRoute.route?.coordinates} driverRoute={page === 'driver' && phase === 'arriving' ? approachProgress.remaining : undefined} cameraCoordinates={cameraCoordinates} drivers={driverCoordinate ? [{ id: "assigned-driver", coordinate: driverCoordinate, arrivalLabel: phase === 'arrived' ? 'Your driver is here' : phase === 'in_progress' ? journeyLabel : driverArrivalLabel }] : undefined} bottomInset={0} topInset={insets.top + 84} cameraBottomInset={mapSelection ? mapBottomInset : sheet.expanded ? sheet.expandedHeight : sheet.collapsedHeight} attributionBottomInset={mapSelection ? mapBottomInset : sheet.expandedHeight} overlayTranslateY={mapSelection ? undefined : sheet.translateY} locationFocus={locationFocus} showControls={false} onSelectCoordinate={selectOnMap} />
+    <RideMap pickup={mapPickup} destination={mapDestination} route={passengerRoute?.coordinates} driverRoute={page === 'driver' && phase === 'arriving' ? approachProgress.remaining : undefined} cameraCoordinates={cameraCoordinates} drivers={driverCoordinate ? [{ id: "assigned-driver", coordinate: driverCoordinate, heading: phase === 'in_progress' ? journeyMovement.heading : approachProgress.heading, arrivalLabel: phase === 'arrived' ? 'Your driver is here' : phase === 'in_progress' ? journeyLabel : driverArrivalLabel }] : undefined} bottomInset={0} topInset={insets.top + 84} cameraBottomInset={mapSelection ? mapBottomInset : sheet.expanded ? sheet.expandedHeight : sheet.collapsedHeight} attributionBottomInset={mapSelection ? mapBottomInset : sheet.expandedHeight} overlayTranslateY={mapSelection ? undefined : sheet.translateY} locationFocus={locationFocus} showControls={false} onSelectCoordinate={selectOnMap} />
     {!mapSelection && <View style={[styles.header, { top: insets.top + 10 }]}>
       {page === 'options' ? <Pressable accessibilityRole="button" accessibilityLabel="Back to home" onPress={() => navigation.goBack()} style={styles.circle}><Ionicons name="arrow-back" size={23} color={colors.navy} /></Pressable> : <View style={styles.headerSpacer} />}
       <Pressable accessibilityRole={__DEV__ && page === 'driver' ? 'button' : undefined} accessibilityLabel={__DEV__ && page === 'driver' ? 'Your ride. Long press for development events' : undefined} onLongPress={() => { if (__DEV__ && page === 'driver' && !processingPayment) setPanel('events'); }} style={styles.headerLabel}><Text style={styles.headerTitle}>{page === 'driver' ? processingPayment ? 'Payment' : completed ? 'Trip summary' : 'Your ride' : 'Book a ride'}</Text></Pressable>
@@ -256,7 +273,7 @@ export function BookRideScreen() {
       <View {...sheet.panHandlers}><Pressable accessibilityRole="button" accessibilityLabel={sheet.expanded ? 'Collapse ride options' : 'Expand ride options'} accessibilityState={{ expanded: sheet.expanded }} onPress={() => sheet.snap(!sheet.expanded)} style={styles.handleArea}><View style={styles.handle} /></Pressable></View>
       <ScrollView ref={scroll} showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, { paddingBottom: footerHeight + (sheet.expanded ? 0 : sheet.travel) + 20 }]}>
         {!processingPayment && routeSummary}
-        {page === 'driver' ? processingPayment ? <View style={[styles.paymentProcessing, { minHeight: Math.max(260, sheet.collapsedHeight - 40) }]} accessibilityLiveRegion="polite"><View style={styles.paymentSpinner}><ActivityIndicator size="large" color={colors.primary} /></View><Text style={styles.paymentProcessingTitle}>Processing payment</Text><Text style={styles.paymentProcessingAmount}>{formatXaf(session?.fare ?? selectedFare)}</Text><Text style={styles.panelCopy}>Paying from your Zipp Wallet</Text></View> : completed && session ? <RideCompletion fare={session.fare} paid={session.paid} rated={phase === 'rated'} rating={rating} feedback={feedback} pickup={receiptPickup} destination={stops.destination.label} image={ride.image} model={model} distance={roadRoute.route?.distanceMeters} duration={roadRoute.route?.durationSeconds} onRating={setRating} onFeedback={setFeedback} /> : <RideDriverDetails name={ride.name} model={model} image={ride.image} pickup={stops.pickup.label} destination={stops.destination.label} onMessage={() => setPanel('message')} arrivalLabel={phase === 'in_progress' ? journeyLabel : driverArrivalLabel} phase={phase === 'arrived' || phase === 'in_progress' ? phase : 'arriving'} pin={session?.pin} onShare={() => { void shareTrip(); }} onSafety={() => setPanel('safety')} /> : <>
+        {page === 'driver' ? processingPayment ? <View style={[styles.paymentProcessing, { minHeight: Math.max(260, sheet.collapsedHeight - 40) }]} accessibilityLiveRegion="polite"><View style={styles.paymentSpinner}><ActivityIndicator size="large" color={colors.primary} /></View><Text style={styles.paymentProcessingTitle}>Processing payment</Text><Text style={styles.paymentProcessingAmount}>{formatXaf(session?.fare ?? selectedFare)}</Text><Text style={styles.panelCopy}>Paying from your Zipp Wallet</Text></View> : completed && session ? <RideCompletion fare={session.fare} paid={session.paid} rated={phase === 'rated'} rating={rating} feedback={feedback} pickup={receiptPickup} destination={stops.destination.label} image={ride.image} model={model} distance={passengerRoute?.distanceMeters} duration={passengerRoute?.durationSeconds} onRating={setRating} onFeedback={setFeedback} /> : <RideDriverDetails name={ride.name} model={model} image={ride.image} pickup={stops.pickup.label} destination={stops.destination.label} onMessage={() => contactDriver('message')} onCall={() => contactDriver('voice')} arrivalLabel={phase === 'in_progress' ? journeyLabel : driverArrivalLabel} phase={phase === 'arrived' || phase === 'in_progress' ? phase : 'arriving'} pin={session?.pin} onShare={() => { void shareTrip(); }} onSafety={() => setPanel('safety')} /> : <>
         <View style={styles.stops}>
           <View style={styles.stopRail}><View style={styles.pickupDot} /><View style={styles.rail} /><Ionicons name="location" size={19} color={colors.primary} /></View>
           <View style={styles.stopFields}>
@@ -285,7 +302,7 @@ export function BookRideScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Close" style={styles.backdrop} onPress={() => setPanel(null)} />
         <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 20), maxHeight: height - insets.top - 24 }]} accessibilityViewIsModal>
           <View style={styles.handle} />
-          <View style={styles.sectionRow}><Text style={styles.panelTitle}>{panel === 'wallet' ? 'Wallet balance' : panel === 'events' ? 'Ride simulation' : panel === 'safety' ? 'Safety & support' : panel === 'message' ? 'Message your driver' : panel === 'pickup' ? 'Where from?' : 'Where to?'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close panel" onPress={() => setPanel(null)} hitSlop={10}><Ionicons name="close" size={24} color={colors.navy} /></Pressable></View>
+          <View style={styles.sectionRow}><Text style={styles.panelTitle}>{panel === 'wallet' ? 'Wallet balance' : panel === 'events' ? 'Ride simulation' : panel === 'safety' ? 'Safety & support' : panel === 'pickup' ? 'Where from?' : 'Where to?'}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close panel" onPress={() => setPanel(null)} hitSlop={10}><Ionicons name="close" size={24} color={colors.navy} /></Pressable></View>
           <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.panelContent}>
           {(panel === 'pickup' || panel === 'destination') && <>
             <Text style={styles.small}>Enter an address or landmark, or choose a point on the map.</Text>
@@ -300,11 +317,6 @@ export function BookRideScreen() {
             {savedLocations.length > 0 && <><Text style={styles.small}>Saved locations</Text>{savedLocations.map((place, index) => <Pressable key={`${place.coordinate?.latitude}:${place.coordinate?.longitude}`} accessibilityRole="button" onPress={() => { const key = panel; setStops(current => ({ ...current, [key]: place })); setPanel(null); Keyboard.dismiss(); }} style={styles.optionRow}><Image source={require('../../assets/save-location.png')} resizeMode="contain" style={styles.optionIcon} /><Text style={styles.optionText}>{place.label}</Text></Pressable>)}</>}
             <ActionButton accessibilityLabel="Save location" disabled={!draft.trim()} onPress={saveStop}>Save location</ActionButton>
           </>}
-          {panel === 'message' && <>
-            <Text style={styles.small}>Let your driver know where to meet you.</Text>
-            <TextInput value={messageDraft} onChangeText={setMessageDraft} multiline maxLength={500} placeholder="Message your driver…" placeholderTextColor={colors.secondaryText} accessibilityLabel="Message draft" style={[styles.input, { minHeight: 110, textAlignVertical: 'top' }]} />
-            <ActionButton accessibilityLabel="Keep draft" onPress={() => setPanel(null)}>Keep draft</ActionButton>
-          </>}
           {panel === 'wallet' && <>
             <View style={styles.walletNotice}><View style={styles.walletNoticeIcon}><Ionicons name="wallet-outline" size={27} color={colors.primary} /></View><Text style={styles.walletNoticeTitle}>Top up before you ride</Text><Text style={styles.panelCopy}>Your available wallet balance needs to cover the full ride fare.</Text></View>
             <View style={styles.walletBreakdown}><View style={styles.walletLine}><Text style={styles.small}>Available balance</Text><Text style={styles.optionText}>{formatXaf(wallet.available)}</Text></View><View style={styles.walletLine}><Text style={styles.small}>Ride fare</Text><Text style={styles.optionText}>{formatXaf(session && page === 'driver' ? session.fare : selectedFare)}</Text></View><View style={styles.walletLine}><Text style={styles.small}>Amount to add</Text><Text style={styles.walletShortfall}>{formatXaf(Math.max(0, (session && page === 'driver' ? session.fare : selectedFare) - wallet.available))}</Text></View></View>
@@ -314,7 +326,7 @@ export function BookRideScreen() {
             <Text style={styles.panelCopy}>Check your driver’s details and keep someone you trust informed about your journey.</Text>
             <View style={styles.optionRow}><Ionicons name="car-outline" size={22} color={colors.primary} /><Text style={styles.optionText}>Alex · {model} · SW 681 BS</Text></View>
             <Pressable accessibilityRole="button" onPress={() => { void shareTrip(); }} style={styles.optionRow}><Ionicons name="share-social-outline" size={22} color={colors.primary} /><Text style={styles.optionText}>Share trip details</Text></Pressable>
-            <Pressable accessibilityRole="button" onPress={() => setPanel('message')} style={styles.optionRow}><Ionicons name="chatbubble-outline" size={22} color={colors.primary} /><Text style={styles.optionText}>Message your driver</Text></Pressable>
+            <Pressable accessibilityRole="button" onPress={() => contactDriver('message')} style={styles.optionRow}><Ionicons name="chatbubble-outline" size={22} color={colors.primary} /><Text style={styles.optionText}>Message your driver</Text></Pressable>
             <Text style={styles.small}>If you’re in immediate danger, contact local emergency services.</Text>
           </>}
           {__DEV__ && panel === 'events' && session && <RideSimulationControls phase={phase} onNext={() => { if (phase === 'arriving') applyEvent({ type: 'arrived', rideId: session.id }); else if (phase === 'arrived') { applyEvent({ type: 'pin_verified', rideId: session.id }); applyEvent({ type: 'started', rideId: session.id }); } else setPanel(null); }} />}

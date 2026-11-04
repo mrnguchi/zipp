@@ -17,6 +17,45 @@ Set `EXPO_PUBLIC_API_URL` in `.env.local` when the backend is available. Do not
 put payment credentials, tokens, or other secrets in Expo public environment
 variables.
 
+## Profile settings preview
+
+Profile uses the main Zipp navigation bar. Its footer displays the supplied
+authorization number, `CMR-2026-2532/233`.
+
+Password & Security includes device biometric unlock. Enabling or disabling it
+requires device verification; leaving the foreground locks an enabled session.
+Fingerprint/strong face biometrics and device-passcode fallback are handled by
+`expo-local-authentication`. Face ID on iOS requires a development build rather
+than Expo Go. This is a session lock, not account passkey registration or login;
+account passkeys still require the authentication backend and associated domain.
+
+Notifications provides separate Chime, Bell, Pulse, and Silent choices for each
+existing notification event. Bundled tones play with in-app banners and can be
+previewed in the sound chooser. Disabled categories do not queue new banners.
+Device volume and silent mode apply. These sounds do not configure OS push
+notification channels. Settings currently last for the app session.
+
+## Messages and calls preview
+
+Messages contains conversation and call-history tabs, unread/missed filters,
+search, contact details, and individual conversation search. Driver contact
+buttons in a booking open the same conversation used by this inbox.
+
+Chat supports local text drafts, quick replies, photo selection with review,
+single-location sharing with review, trip cards, and microphone voice notes with
+playback before adding them. Voice notes stop when the app leaves the foreground
+and are limited to one minute. Microphone permission is requested only after
+tapping Start recording. New native builds must include the updated audio and
+image-picker configuration.
+
+Sample conversations and call history are development fixtures. Text, media,
+drafts, and call history remain in memory for the current app session; selected
+media and recordings use local cache URIs. Nothing is delivered to a contact.
+Outgoing and incoming voice call screens are explicitly labeled previews.
+They do not transmit audio or place phone calls. Production messaging needs
+authenticated transport, server-side conversation membership and delivery state,
+media storage, persistence, and signaling/media services for live calls.
+
 ## Source layout
 
 - `src/components`: reusable UI

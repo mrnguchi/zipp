@@ -55,7 +55,11 @@ export function PhoneVerificationScreen() {
         ? t('verification.signupComplete')
         : t('verification.loginComplete'),
     );
-    navigation.navigate('SelectRole');
+    if (purpose === 'signup') {
+      navigation.replace('SelectRole');
+    } else {
+      navigation.reset({ index: 0, routes: [{ name: 'RoleHome' }] });
+    }
   };
 
   return (

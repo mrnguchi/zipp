@@ -37,9 +37,9 @@ function addPin(point,type,label){
   var el=document.createElement('div');el.className='pin '+type;
   if(type==='car'||type==='courier'){
     el.style.cssText='position:relative;width:46px;height:46px;border:0;background:transparent;box-shadow:none;transition:transform 80ms linear;';
-    var car=document.createElement('img');car.src=type==='courier'?${JSON.stringify(courierIcon)}:${JSON.stringify(driverCarIcon)};car.alt=type==='courier'?'Delivery courier':'Driver car';car.style.cssText='width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 3px #0003);';el.appendChild(car);
+    var car=document.createElement('img');car.src=type==='courier'?${JSON.stringify(courierIcon)}:${JSON.stringify(driverCarIcon)};car.alt=type==='courier'?'Delivery courier':'Driver car';car.style.cssText='width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 3px #0003);transform-origin:center;';el.appendChild(car);
     var bubble=document.createElement('div');bubble.textContent=label||'';bubble.style.cssText='position:absolute;bottom:50px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:9px 12px;border-radius:14px;background:#FFFFFF;color:#121B26;font:600 12px sans-serif;box-shadow:0 3px 12px #0002;border-bottom:3px solid ${colors.yellow};';bubble.style.display=label?'block':'none';el.appendChild(bubble);
-    return {marker:new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map),bubble:bubble};
+    return {marker:new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map),bubble:bubble,car:car,coordinate:point,heading:null};
   }
   if(type==='current-location'){
     el.style.cssText='width:24px;height:24px;border:0;background:transparent;box-shadow:none;';
@@ -48,6 +48,21 @@ function addPin(point,type,label){
   }
   el.innerHTML=type==='car'?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10l2-5h10l2 5M4 10h16v8H4zM6 18v3m12-3v3"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg>':type==='destination'?'&#9873;':'&#9679;';
   markers.push(new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map));
+}
+function orientDriver(driver,point,heading){
+  if(!Number.isFinite(heading)){
+    var dx=(point.longitude-driver.coordinate.longitude)*Math.cos(point.latitude*Math.PI/180);
+    var dy=point.latitude-driver.coordinate.latitude;
+    if(Math.hypot(dx,dy)>0.000001)heading=Math.atan2(dx,dy)*180/Math.PI;
+  }
+  if(Number.isFinite(heading)){
+    driver.heading=heading;
+    // The original perspective artwork faces left. Mirror it for eastbound
+    // travel, keeping the car upright rather than rotating it upside down.
+    var east=Math.sin(heading*Math.PI/180);
+    if(Math.abs(east)>0.02)driver.car.style.transform=east>0?'scaleX(-1)':'scaleX(1)';
+  }
+  driver.coordinate=point;
 }
 function update(data){
   current=data||{};if(!map.getSource('trip-route'))return;
@@ -63,6 +78,7 @@ function update(data){
     var id=d.id||String(index);activeDriverIds.push(id);
     if(!driverMarkers[id])driverMarkers[id]=addPin(d.coordinate,d.kind==='courier'?'courier':'car',d.arrivalLabel);
     else{driverMarkers[id].marker.setLngLat(lnglat(d.coordinate));driverMarkers[id].bubble.textContent=d.arrivalLabel||'';driverMarkers[id].bubble.style.display=d.arrivalLabel?'block':'none';}
+    orientDriver(driverMarkers[id],d.coordinate,d.heading);
   });
   Object.keys(driverMarkers).forEach(function(id){if(activeDriverIds.indexOf(id)<0){driverMarkers[id].marker.remove();delete driverMarkers[id];}});
   var coords=(current.route||[]).map(lnglat);

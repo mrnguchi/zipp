@@ -7,6 +7,7 @@ import { useWallet } from '../contexts/WalletContext';
 import { useActivity } from '../contexts/ActivityContext';
 import { rideActivity } from '../services/activityHistory';
 import type { RideActivityMeta } from '../services/activityHistory';
+import type { NotificationEventKey } from '../services/notificationSounds';
 
 export function useRideLifecycle(meta?: RideActivityMeta) {
   const [session, setSession] = useState<RideSession | null>(null);
@@ -27,7 +28,7 @@ export function useRideLifecycle(meta?: RideActivityMeta) {
       : event.type === 'payment_failed' ? ['Payment needs attention', 'Your ride is complete. Open the trip summary to finish payment.']
       : event.type === 'canceled' ? ['Ride canceled', `${formatXaf(Math.round(next.fare * 0.25))} was charged to your wallet. The remaining reserved balance is available again.`]
       : event.type === 'payment_received' ? ['Your receipt is ready', `${formatXaf(next.fare)} was paid from your Zipp Wallet. Thanks for riding with Zipp.`] : null;
-    if (copy) notify({ id: `${next.id}:${event.type}`, title: copy[0], body: copy[1], kind: event.type === 'payment_received' ? 'wallet' : 'ride' });
+    if (copy) notify({ id: `${next.id}:${event.type}`, title: copy[0], body: copy[1], kind: event.type === 'payment_received' ? 'wallet' : 'ride', soundEvent: event.type as NotificationEventKey });
     return true;
   }, [notify, reserve, settle]);
   useEffect(() => subscribeRideEvents(applyEvent), [applyEvent]);

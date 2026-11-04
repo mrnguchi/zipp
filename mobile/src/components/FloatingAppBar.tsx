@@ -33,7 +33,7 @@ export function FloatingAppBar({ activeTab, onTabPress }: FloatingAppBarProps) {
             <Pressable
               key={tab.name}
               accessibilityRole="tab"
-              accessibilityLabel={tab.name}
+              accessibilityLabel={tab.name === 'Account' ? 'Profile' : tab.name}
               accessibilityState={{ selected }}
               onPress={() => onTabPress(tab.name)}
               style={({ pressed }) => [styles.tab, pressed && styles.pressed]}
@@ -41,7 +41,7 @@ export function FloatingAppBar({ activeTab, onTabPress }: FloatingAppBarProps) {
               <View style={[styles.iconWrap, selected && styles.activeIconWrap]}>
                 <Ionicons name={selected ? tab.activeIcon : tab.icon} size={23} color={selected ? '#FFFFFF' : '#999DA1'} />
               </View>
-              <Text style={[styles.label, selected && styles.activeLabel]}>{tab.name}</Text>
+              <Text style={[styles.label, selected && styles.activeLabel]}>{tab.name === 'Account' ? 'Profile' : tab.name}</Text>
               <View style={[styles.dot, selected && styles.activeDot]} />
             </Pressable>
           );

@@ -11,7 +11,7 @@ type RideMapProps = {
   pickup?: MapCoordinate;
   destination?: MapCoordinate;
   route?: MapCoordinate[];
-  drivers?: { id: string; coordinate: MapCoordinate; arrivalLabel?: string; kind?: 'car' | 'courier' }[];
+  drivers?: { id: string; coordinate: MapCoordinate; heading?: number; arrivalLabel?: string; kind?: 'car' | 'courier' }[];
   driverRoute?: MapCoordinate[];
   cameraCoordinates?: MapCoordinate[];
   bottomInset: number;

@@ -13,10 +13,14 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { RoleProvider } from './contexts/RoleContext';
 import { ProfileProvider } from './contexts/ProfileContext';
+import { ProfileSettingsProvider } from './contexts/ProfileSettingsContext';
+import { BiometricProvider } from './contexts/BiometricContext';
+import { NotificationAudioProvider } from './contexts/NotificationAudioContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { WalletProvider } from './contexts/WalletContext';
 import { ActivityProvider } from './contexts/ActivityContext';
 import { SavedPlacesProvider } from './contexts/SavedPlacesContext';
+import { MessagingProvider } from './contexts/MessagingContext';
 import './i18n';
 import { RootNavigator } from './navigation/RootNavigator';
 import { queryClient } from './query/client';
@@ -41,15 +45,23 @@ export default function App() {
         <RoleProvider>
           <ProfileProvider>
           <SavedPlacesProvider>
+          <ProfileSettingsProvider>
+          <BiometricProvider>
+          <NotificationAudioProvider>
           <NotificationProvider>
           <WalletProvider>
           <ActivityProvider>
+          <MessagingProvider>
           <NavigationContainer>
             <RootNavigator />
           </NavigationContainer>
+          </MessagingProvider>
           </ActivityProvider>
           </WalletProvider>
           </NotificationProvider>
+          </NotificationAudioProvider>
+          </BiometricProvider>
+          </ProfileSettingsProvider>
           </SavedPlacesProvider>
           </ProfileProvider>
         </RoleProvider>

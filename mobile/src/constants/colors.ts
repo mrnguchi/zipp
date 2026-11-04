@@ -2,6 +2,8 @@ export const colors = {
   primary: '#0B9658',
   primaryDark: '#087948',
   primarySoft: '#E5F3EB',
+  // Default for icon, avatar, and other neutral control backgrounds.
+  iconBackground: '#F4F4F4',
   yellow: '#FEC400',
   dark: '#121B26',
   navy: '#121B26',

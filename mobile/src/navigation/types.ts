@@ -1,4 +1,5 @@
 import type { UserRole } from '../types/domain';
+import type { NotificationEventKey } from '../services/notificationSounds';
 import type { MapCoordinate } from '../components/maps/mapGeometry';
 
 export type RootStackParamList = {
@@ -12,6 +13,27 @@ export type RootStackParamList = {
     name?: string;
   };
   SelectRole: undefined;
+  Conversation: { conversationId: string };
+  ConversationDetails: { conversationId: string };
+  ConversationSearch: { conversationId: string };
+  NewConversation: { mode: 'message' | 'voice' };
+  Call: { conversationId: string; mode: 'voice'; incoming?: boolean };
+  CallDetails: { callId: string };
+  AttachmentReview: { conversationId: string; kind: 'image' | 'location' | 'trip'; uri?: string; coordinate?: MapCoordinate; label?: string };
+  MessageMedia: { conversationId: string; messageId: string };
+  VoiceMessage: { conversationId: string };
+  ManageProfile: undefined;
+  PasswordSecurity: undefined;
+  ChangePassword: undefined;
+  BiometricUnlock: undefined;
+  NotificationSound: { event: NotificationEventKey };
+  ProfileNotifications: undefined;
+  ProfileLanguage: undefined;
+  ProfileFAQ: undefined;
+  FAQArticle: { id: string };
+  ContactSupport: undefined;
+  ReviewSupport: { draft: { subject: string; email: string; message: string } };
+  AboutUs: undefined;
   RoleHome: { openWallet?: boolean } | undefined;
   RoleGuide: { role: 'rider' | 'driver' };
   BookRide: { focusDestination?: boolean; destinationLabel?: string; destinationCoordinate?: MapCoordinate } | undefined;

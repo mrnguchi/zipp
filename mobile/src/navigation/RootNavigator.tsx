@@ -1,6 +1,14 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { MainTabsScreen } from '../screens/MainTabsScreen';
+import { ConversationScreen } from '../screens/messaging/ConversationScreen';
+import { ConversationDetailsScreen, ConversationSearchScreen, NewConversationScreen } from '../screens/messaging/ConversationDetailsScreen';
+import { AttachmentReviewScreen, MessageMediaScreen } from '../screens/messaging/MessageMediaScreen';
+import { VoiceMessageScreen } from '../screens/messaging/VoiceMessageScreen';
+import { CallDetailsScreen, CallScreen } from '../screens/messaging/CallScreen';
+import { ProfileDetailScreen } from '../screens/profile/ProfileDetailScreen';
+import { BiometricScreen } from '../screens/profile/BiometricScreen';
+import { NotificationSoundScreen } from '../screens/profile/NotificationSoundScreen';
 import { RoleGuideScreen } from '../screens/RoleGuideScreen';
 import { BookRideScreen } from '../screens/BookRideScreen';
 import { DeliveryScreen } from '../screens/DeliveryScreen';
@@ -42,6 +50,18 @@ export function RootNavigator() {
         component={DeliveryScreen}
         options={{ headerTransparent: true, contentStyle: { backgroundColor: 'transparent' }, scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' } }}
       />
+      <Stack.Screen name="Conversation" component={ConversationScreen} />
+      <Stack.Screen name="ConversationDetails" component={ConversationDetailsScreen} />
+      <Stack.Screen name="ConversationSearch" component={ConversationSearchScreen} />
+      <Stack.Screen name="NewConversation" component={NewConversationScreen} />
+      <Stack.Screen name="AttachmentReview" component={AttachmentReviewScreen} />
+      <Stack.Screen name="MessageMedia" component={MessageMediaScreen} />
+      <Stack.Screen name="VoiceMessage" component={VoiceMessageScreen} />
+      <Stack.Screen name="Call" component={CallScreen} options={{gestureEnabled:false}} />
+      <Stack.Screen name="CallDetails" component={CallDetailsScreen} />
+      <Stack.Screen name="BiometricUnlock" component={BiometricScreen} />
+      <Stack.Screen name="NotificationSound" component={NotificationSoundScreen} />
+      {(['ManageProfile', 'PasswordSecurity', 'ChangePassword', 'ProfileNotifications', 'ProfileLanguage', 'ProfileFAQ', 'FAQArticle', 'ContactSupport', 'ReviewSupport', 'AboutUs'] as const).map(name => <Stack.Screen key={name} name={name} component={ProfileDetailScreen} />)}
       <Stack.Screen
         name="BookRide"
         component={BookRideScreen}

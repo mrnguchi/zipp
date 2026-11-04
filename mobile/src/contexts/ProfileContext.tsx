@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-type Profile = { phone: string; name?: string; firstName?: string; username?: string };
+export type Profile = { phone: string; name?: string; firstName?: string; username?: string; email?: string };
 type ProfileContextValue = { profile: Profile | null; setProfile: (profile: Profile | null) => void };
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 
