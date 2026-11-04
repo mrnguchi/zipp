@@ -1,6 +1,8 @@
 import { getLocales } from 'expo-localization';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {frenchUI} from './uiFrench';
 
 const resources = {
   en: {
@@ -209,13 +211,21 @@ const resources = {
 
 const deviceLanguage = getLocales()[0]?.languageCode;
 
-void i18n.use(initReactI18next).init({
-  resources,
+export const languageReady = i18n.use(initReactI18next).init({
+  resources: {en:{...resources.en,ui:Object.fromEntries(Object.keys(frenchUI).map(key=>[key,key]))},fr:{...resources.fr,ui:frenchUI}},
   lng: deviceLanguage === 'fr' ? 'fr' : 'en',
   fallbackLng: 'en',
   interpolation: {
     escapeValue: false,
   },
+}).then(async () => {
+  try {const saved=await AsyncStorage.getItem('zipp.language');if(saved==='en'||saved==='fr')await i18n.changeLanguage(saved);} catch {/* Device language remains available when storage is unavailable. */}
 });
+
+export async function changeAppLanguage(language:string) {
+  if(language!=='en'&&language!=='fr')return;
+  await AsyncStorage.setItem('zipp.language',language);
+  await i18n.changeLanguage(language);
+}
 
 export default i18n;

@@ -1,5 +1,6 @@
+import {LocalizedPressable as Pressable} from './LocalizedNative';
 import type { PropsWithChildren } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { PressableProps } from 'react-native';
 
@@ -11,6 +12,7 @@ type ActionButtonProps = PropsWithChildren<{
   onPress: PressableProps['onPress'];
   accessibilityLabel: string;
   disabled?: boolean;
+  tone?: 'primary'|'danger';
   arrow?: 'arrow-forward' | 'arrow-back' | 'add';
 }>;
 
@@ -19,6 +21,7 @@ export function ActionButton({
   onPress,
   accessibilityLabel,
   disabled = false,
+  tone = 'primary',
   arrow = 'arrow-forward',
 }: ActionButtonProps) {
   const { colors } = useAppTheme();
@@ -32,13 +35,14 @@ export function ActionButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: colors.primary },
+        { backgroundColor: colors.primaryDark },
+        tone==='danger'&&{backgroundColor:palette.error},
         styles.shadow,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
     >
-      <Text style={[styles.label, { color: colors.white }]}>{children}</Text>
+      <Text translate style={[styles.label, { color: colors.white }]}>{children}</Text>
       <View style={styles.arrow}><Ionicons name={arrow} size={21} color={palette.navy} /></View>
     </Pressable>
   );

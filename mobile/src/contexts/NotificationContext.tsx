@@ -1,6 +1,7 @@
+import {LocalizedPressable as Pressable} from '../components/LocalizedNative';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
-import { AccessibilityInfo, Animated, Pressable, StyleSheet, View } from 'react-native';
+import {AccessibilityInfo, Animated, StyleSheet, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText as Text } from '../components/AppText';
@@ -46,7 +47,7 @@ export function NotificationProvider({ children }: PropsWithChildren) {
   return <Context.Provider value={{ notices, notify }}>{children}
     {current && <Animated.View style={[styles.banner, { top: insets.top + 10, opacity }]} accessibilityLiveRegion="polite">
       <View style={styles.icon}><Ionicons name={current.kind === 'wallet' ? 'wallet-outline' : 'notifications-outline'} size={23} color={colors.primary} /></View>
-      <View style={styles.copy}><Text style={styles.title}>{current.title}</Text><Text style={styles.body}>{current.body}</Text></View>
+      <View style={styles.copy}><Text translate style={styles.title}>{current.title}</Text><Text translate style={styles.body}>{current.body}</Text></View>
       <Pressable accessibilityRole="button" accessibilityLabel="Dismiss notification" onPress={() => setQueue(items => items.slice(1))} style={styles.close}><Ionicons name="close" size={21} color={colors.navy} /></Pressable>
     </Animated.View>}
   </Context.Provider>;

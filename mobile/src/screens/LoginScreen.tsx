@@ -1,21 +1,13 @@
 import { PasswordInput } from '../components/PasswordInput';
 import { inputStyles } from '../constants/inputStyles';
+import {KeyboardAwareScrollView as ScrollView} from '../components/KeyboardAwareScrollView';
+import {LocalizedPressable as Pressable, LocalizedTextInput as TextInput} from '../components/LocalizedNative';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import {Image, KeyboardAvoidingView, Platform, StyleSheet, View, useWindowDimensions, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
@@ -34,6 +26,7 @@ export function LoginScreen() {
   const [phone, setPhone] = useState(__DEV__ ? '612345678' : '');
   const [password, setPassword] = useState(__DEV__ ? 'ZippDev123!' : '');
   const [error, setError] = useState('');
+  const [focusedField,setFocusedField] = useState<'phone'|'password'|null>(null);
 
   const submitLogin = () => {
     if (!phone.trim() || !password.trim()) {
@@ -53,7 +46,7 @@ export function LoginScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.content}
@@ -66,7 +59,7 @@ export function LoginScreen() {
             onPress={() => navigation.goBack()}
             style={styles.back}
           >
-            <Text style={[styles.backLabel, { color: colors.dark }]}>
+            <Text translate style={[styles.backLabel, { color: colors.dark }]}>
               {t('common.back')}
             </Text>
           </Pressable>
@@ -79,10 +72,10 @@ export function LoginScreen() {
           />
 
           <View style={styles.intro}>
-            <Text style={[styles.heading, { color: colors.secondaryText }]}>
+            <Text translate style={[styles.heading, { color: colors.secondaryText }]}>
               {t('login.title')}
             </Text>
-            <Text style={[styles.subtitle, { color: colors.mutedText }]}>
+            <Text translate style={[styles.subtitle, { color: colors.mutedText }]}>
               {t('login.subtitle')}
             </Text>
           </View>
@@ -96,11 +89,12 @@ export function LoginScreen() {
 
           <View style={styles.form}>
             <View style={styles.field}>
-              <Text style={[styles.label, { color: colors.secondaryText }]}>
+              <Text translate style={[styles.label, { color: colors.secondaryText }]}>
                 {t('login.phone')}
               </Text>
               <TextInput
                 accessibilityLabel={t('login.phone')}
+                onFocus={()=>setFocusedField('phone')} onBlur={()=>setFocusedField(null)}
                 autoComplete="tel"
                 keyboardType="phone-pad"
                 onChangeText={(value) => {
@@ -119,11 +113,15 @@ export function LoginScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={[styles.label, { color: colors.secondaryText }]}>
+              <Text translate style={[styles.label, { color: colors.secondaryText }]}>
                 {t('login.password')}
               </Text>
               <PasswordInput
                     accessibilityLabel={t('login.password')}
+                    onFocus={()=>setFocusedField('password')}
+                    onBlur={()=>setFocusedField(null)}
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     autoComplete="current-password"
                     onChangeText={(value) => {
                     setPassword(value);
@@ -131,14 +129,15 @@ export function LoginScreen() {
                   }}
                     placeholder={t('login.passwordPlaceholder')}
                     placeholderTextColor={colors.mutedText}
-                    returnKeyType="done"
+                    onSubmitEditing={submitLogin}
+                    returnKeyType="go"
                     value={password}
                   />
             </View>
           </View>
 
           {error ? (
-            <Text accessibilityRole="alert" style={[styles.error, { color: colors.error }]}>
+            <Text translate accessibilityRole="alert" style={[styles.error, { color: colors.error }]}>
               {error}
             </Text>
           ) : null}
@@ -150,16 +149,17 @@ export function LoginScreen() {
             >
               {t('login.submit')}
             </ActionButton>
+            {__DEV__&&<Pressable accessibilityRole="button" accessibilityLabel="Open verified demo driver profile" onPress={()=>navigation.navigate('DriverDemo')} style={{minHeight:48,justifyContent:'center',alignItems:'center',backgroundColor:colors.input,borderRadius:24,padding:12}}><Text translate style={{fontSize:14,fontWeight:'600',color:colors.primaryDark}}>Try verified driver demo</Text></Pressable>}
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={`${t('signup.noAccount')} ${t('login.createAccount')}`}
               onPress={() => navigation.navigate('SignupCustomer')}
               style={styles.createAccount}
             >
-              <Text style={[styles.createAccountPrompt, { color: colors.secondaryText }]}>
+              <Text translate style={[styles.createAccountPrompt, { color: colors.secondaryText }]}>
                 {t('signup.noAccount')}{' '}
               </Text>
-              <Text style={[styles.createAccountLabel, { color: colors.primary }]}>
+              <Text translate style={[styles.createAccountLabel, { color: colors.primary }]}>
                 {t('login.createAccount')}
               </Text>
             </Pressable>

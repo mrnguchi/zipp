@@ -4,6 +4,7 @@ export const profileSections = [
     { label: 'Password & Security', icon: 'lock-closed-outline', screen: 'PasswordSecurity' },
     { label: 'Notifications', icon: 'notifications-outline', screen: 'ProfileNotifications' },
     { label: 'Language', icon: 'language-outline', screen: 'ProfileLanguage' },
+    { label: 'Refer & earn', icon: 'gift-outline', screen: 'ReferAndEarn' },
   ] },
   { title: 'Support', rows: [
     { label: 'FAQ', icon: 'help-circle-outline', screen: 'ProfileFAQ' },
@@ -135,7 +136,7 @@ export const faqItems: FAQItem[] = [
       { title: 'Make your selection', body: 'Tap English or Français. A checkmark shows the selected language, and the setting applies immediately.' },
       { title: 'Return to the app', body: 'Go back to Profile and continue using Zipp. Screens with available translations use the language you selected.' },
     ],
-    details: [{ title: 'About translated screens', body: 'Some preview screens, including parts of the profile and ride flow, are currently written in English. Selecting French changes the screens that already have French translations.' }, { title: 'When reopening the app', body: 'The current language choice lasts for the session. At startup, Zipp uses French if your device language is French, otherwise English.' }],
+    details: [{ title: 'About translated screens', body: 'Your selected language applies to app navigation, labels, and translated screen content. Names, messages, and addresses stay as entered.' }, { title: 'When reopening the app', body: 'Zipp remembers your language on this device, including after you close the app or log out. Your device language is used only before you make a selection.' }],
     tip: { title: 'No extra save step', body: 'The checkmark confirms your selection. You can return and change it again whenever you need.' },
     related: ['account', 'sounds'],
   },

@@ -1,24 +1,16 @@
-import { PasswordInput } from '../components/PasswordInput';
 import { inputStyles } from '../constants/inputStyles';
+import {KeyboardAwareScrollView as ScrollView} from '../components/KeyboardAwareScrollView';
+import {LocalizedPressable as Pressable, LocalizedTextInput as TextInput} from '../components/LocalizedNative';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import {Image, KeyboardAvoidingView, Platform, StyleSheet, View, useWindowDimensions, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
+import { FormField } from '../components/FormField';
 import { ActionButton } from '../components/ActionButton';
 import { useAppTheme } from '../hooks/useAppTheme';
 import type { RootStackParamList } from '../navigation/types';
@@ -42,6 +34,8 @@ export function SignupCustomerScreen() {
       return;
     }
 
+    if(!/^\+?\d{9,15}$/.test(phone.replace(/[\s()-]/g,''))){setError('Enter a valid phone number.');return;}
+    if(password.length<8){setError('Use at least 8 characters for your password.');return;}
     setError('');
     navigation.navigate('PhoneVerification', {
       phone: phone.trim(),
@@ -55,7 +49,7 @@ export function SignupCustomerScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -71,7 +65,7 @@ export function SignupCustomerScreen() {
               onPress={() => navigation.goBack()}
               style={styles.back}
             >
-              <Text style={[styles.backLabel, { color: colors.dark }]}>
+              <Text translate style={[styles.backLabel, { color: colors.dark }]}>
                 {t('common.back')}
               </Text>
             </Pressable>
@@ -82,7 +76,7 @@ export function SignupCustomerScreen() {
               resizeMode="contain"
               style={styles.logo}
             />
-            <Text
+            <Text translate
               adjustsFontSizeToFit
               numberOfLines={1}
               style={[styles.heading, { color: colors.secondaryText }]}
@@ -100,73 +94,13 @@ export function SignupCustomerScreen() {
 
           <View style={styles.formSection}>
             <View style={styles.form}>
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.name')}
-                </Text>
-                <TextInput
-                  accessibilityLabel={t('signup.name')}
-                  autoCapitalize="words"
-                  autoComplete="name"
-                  onChangeText={(value) => {
-                    setName(value);
-                    setError('');
-                  }}
-                  placeholder={t('signup.namePlaceholder')}
-                  placeholderTextColor={colors.mutedText}
-                  returnKeyType="done"
-                  style={[
-                    styles.input,
-                    { backgroundColor: colors.input, color: colors.dark },
-                  ]}
-                  value={name}
-                />
-              </View>
-
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.phone')}
-                </Text>
-                <TextInput
-                  accessibilityLabel={t('signup.phone')}
-                  autoComplete="tel"
-                  keyboardType="phone-pad"
-                  onChangeText={(value) => {
-                    setPhone(value);
-                    setError('');
-                  }}
-                  placeholder={t('signup.phonePlaceholder')}
-                  placeholderTextColor={colors.mutedText}
-                  returnKeyType="next"
-                  style={[
-                    styles.input,
-                    { backgroundColor: colors.input, color: colors.dark },
-                  ]}
-                  value={phone}
-                />
-              </View>
-
-              <View style={styles.field}>
-                <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.password')}
-                </Text>
-                <PasswordInput
-                    accessibilityLabel={t('signup.password')}
-                    autoComplete="new-password"
-                    onChangeText={(value) => {
-                      setPassword(value);
-                      setError('');
-                    }}
-                    placeholder={t('signup.passwordPlaceholder')}
-                    placeholderTextColor={colors.mutedText}
-                    returnKeyType="done"
-                    value={password}
-                  />
-              </View>
+              <FormField label={t('signup.name')} accessibilityLabel={t('signup.name')} autoCapitalize="words" autoComplete="name" value={name} onChangeText={value=>{setName(value);setError('');}} placeholder={t('signup.namePlaceholder')} maxLength={100} validate={value=>!value.trim()?'Enter your full name.':undefined}/>
+              <FormField label={t('signup.phone')} accessibilityLabel={t('signup.phone')} autoComplete="tel" keyboardType="phone-pad" value={phone} onChangeText={value=>{setPhone(value);setError('');}} placeholder={t('signup.phonePlaceholder')} maxLength={18} validate={value=>!/^\+?\d{9,15}$/.test(value.replace(/[\s()-]/g,''))?'Enter a valid phone number.':undefined}/>
+              <FormField label={t('signup.password')} accessibilityLabel={t('signup.password')} autoComplete="new-password" autoCapitalize="none" autoCorrect={false} value={password} onChangeText={value=>{setPassword(value);setError('');}} secureTextEntry placeholder={t('signup.passwordPlaceholder')} hint="Use at least 8 characters." maxLength={128} onSubmitEditing={createAccount} validate={value=>value.length<8?'Use at least 8 characters.':undefined}/>
             </View>
 
             {error ? (
-              <Text
+              <Text translate
                 accessibilityRole="alert"
                 style={[styles.error, { color: colors.error }]}
               >
@@ -188,10 +122,10 @@ export function SignupCustomerScreen() {
               onPress={() => navigation.navigate('Login')}
               style={styles.signIn}
             >
-              <Text style={[styles.signInPrompt, { color: colors.secondaryText }]}>
+              <Text translate style={[styles.signInPrompt, { color: colors.secondaryText }]}>
                 {t('signup.alreadyHaveAccount')}{' '}
               </Text>
-              <Text style={[styles.signInLabel, { color: colors.primary }]}>
+              <Text translate style={[styles.signInLabel, { color: colors.primary }]}>
                 {t('signup.signIn')}
               </Text>
             </Pressable>

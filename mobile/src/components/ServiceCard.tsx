@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import { AppText as Text } from './AppText';
 import { useAppTheme } from '../hooks/useAppTheme';
@@ -20,11 +20,11 @@ export function ServiceCard({ title, description, marker }: ServiceCardProps) {
       ]}
     >
       <View style={[styles.marker, { backgroundColor: colors.primarySoft }]}>
-        <Text style={[styles.markerText, { color: colors.primary }]}>{marker}</Text>
+        <Text translate style={[styles.markerText, { color: colors.primary }]}>{marker}</Text>
       </View>
       <View style={styles.copy}>
-        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.description, { color: colors.mutedText }]}>
+        <Text translate style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text translate style={[styles.description, { color: colors.mutedText }]}>
           {description}
         </Text>
       </View>

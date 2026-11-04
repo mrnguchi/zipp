@@ -1,0 +1,8 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const compile=file=>ts.transpileModule(fs.readFileSync(`${__dirname}/../src/${file}`,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+test('driver navigation adds a working Earnings tab and rider navigation retains its four tabs',()=>{
+ const api={},selected=[];const jsx=(type,props)=>({type,props});vm.runInNewContext(compile('components/FloatingAppBar.tsx'),{exports:api,require(name){if(name==='react/jsx-runtime')return {jsx,jsxs:jsx};if(name==='react-native')return {View:'View',StyleSheet:{create:s=>s}};if(name==='react-native-safe-area-context')return {useSafeAreaInsets:()=>({bottom:20})};if(name.includes('LocalizedNative'))return {LocalizedPressable:'Pressable'};if(name.includes('AppText'))return {AppText:'Text'};if(name.includes('colors'))return {colors:{}};return {};}});
+ function nodes(n){if(!n||typeof n!=='object')return [];if(Array.isArray(n))return n.flatMap(nodes);return [n,...nodes(n.props?.children)];}
+ const driver=nodes(api.FloatingAppBar({driver:true,activeTab:'Earnings',onTabPress:tab=>selected.push(tab)})).filter(n=>n.props?.accessibilityRole==='tab');assert.equal(driver.length,5);const earnings=driver.find(n=>n.props.accessibilityLabel==='Earnings');assert.ok(earnings.props.accessibilityState.selected);earnings.props.onPress();assert.equal(selected[0],'Earnings');
+ const rider=nodes(api.FloatingAppBar({driver:false,activeTab:'Home',onTabPress(){}})).filter(n=>n.props?.accessibilityRole==='tab');assert.equal(rider.length,4);assert.ok(!rider.some(n=>n.props.accessibilityLabel==='Earnings'));
+});

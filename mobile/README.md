@@ -288,3 +288,43 @@ activity records. Development builds include three terminal sample activities so
 the design can be reviewed immediately; release builds start empty. Actual local
 bookings update the list. History currently lasts for the app session; backend
 history/persistence and live-trip resumption must be integrated before launch.
+
+
+### Traffic and precise pickup
+
+The pickup action requests fresh high-accuracy device coordinates using both a one-shot request and a short subscription. It prefers a reading within 30 metres, but after six seconds accepts the best available fresh reading and displays its accuracy so the user can adjust the pin. Approximate permission remains usable. If the phone supplies no reading, it times out after 20 seconds. Reverse geocoding labels the original coordinate without moving it.
+
+To enable Mapbox Traffic, create a Mapbox account, review its usage/billing requirements, and copy a public `pk.*` token from https://account.mapbox.com/access-tokens/. Set `EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN` in the ignored `mobile/.env` file, then restart Expo. Do not use a secret `sk.*` token. For URL-restricted tokens the current WebView origin is `https://tiles.openfreemap.org/`; use a dedicated hosted origin for production restrictions.
+
+With a token, maps use Mapbox GL JS with the existing grayscale basemap and a traffic overlay underneath the trip routes. Mapbox attribution and logo are retained. Congestion refreshes every eight minutes while the map is visible; missing traffic is not treated as a clear road. This overlay does not make OSRM travel times traffic-aware. Without a token the existing MapLibre map works without traffic. Confirm coverage and token permissions on a real device before releasing.
+
+
+### Driver signup and verification
+
+Signup now goes from phone verification to role selection, without the old blocking account alert. Rider continues to a personalized welcome; Driver opens Vehicle/Bike selection followed by personal details, vehicle details, document selection and preview, a guided front-camera video, application review, status, and welcome. Driver accounts open a driver setup home rather than the passenger booking screen.
+
+Camera, image library and document picker selections work locally. Images/PDFs are limited to 15 MB. Documents use a compact checklist with completion progress and a source-selection bottom sheet. Vehicle condition is required and suggests Everyday, Comfort or Premium; the final category still requires inspection and eligibility review. Bikes remain Delivery.
+
+Custom development/release builds use Vision Camera and ML Kit face detection for automatic muted video capture. One centred, forward-facing face with open eyes must remain aligned for one second before recording starts. Prompts advance from a straight look to a head turn, return to centre and two detected closed/open blink cycles. A successful sequence of at least seven seconds stops/saves the video and opens application review. Missing/multiple/changed faces, stale camera frames, a 30-second timeout, backgrounding or navigation away invalidate incomplete recordings. This is movement guidance, not identity matching or a production anti-spoofing guarantee. Physical iOS/Android testing and native compilation are still required before release.
+
+Expo Go does not include the native detector. It retains manual, muted nine-second capture with one timed prompt at a time, replay and retake. A verification provider and authenticated backend are required for identity checks, secure uploads, submission, reviewer decisions, notifications, and real driver dispatch. The current completion action saves a session draft; it never generates an approval or sends documents to an unconfigured endpoint. Pending/approved/changes-requested views are prepared for server-authoritative status.
+
+Draft fields and attachment references are kept in session memory and reset on logout, not persisted as a verification record. To use automatic capture, build/install the `development` EAS profile (or a local native build), then start Metro with `npx expo start --dev-client --tunnel`. The project includes `expo-dev-client`, the Vision Camera config plugin and Worklets Babel plugin. An iPhone build needs Apple signing credentials; Windows cannot compile the iOS app locally. Do not expect an Expo Go reload or an older development client to add native camera modules.
+
+### Driver workspace and verified demo
+
+In development, select **Try verified driver demo** on Login, Profile, or the driver setup home. Choose Vehicle or Bike. This opens a fresh session as Bertrand Suh (`driver.demo@zipp.example`), with a clearly marked verified sample profile, Comfort vehicle or delivery bike, sample document records, a 4.9 rating and 8,100 XAF in a separate simulated earnings ledger. The demo never approves the real onboarding application, attaches fabricated personal documents, or enables real dispatch. Demo entry clears query caches and remounts private session providers; logout clears the workspace. Release builds hide and reject demo entry.
+
+Go online, preview a request, accept, arrive at pickup, verify rider PIN `4826` (or collect a courier package), travel to drop-off, then complete. Delivery handover requires recipient PIN `6291`. Use the demo PIN shortcut to avoid repetitive entry. Cancellation requires a reason and is blocked after the ride/collection starts. An active trip can be resumed and prevents going offline or switching vehicles. Completion adds net earnings once, enables customer rating, creates history/receipt records, and supports receipt sharing. Customer chat/calling opens the existing local communication previews.
+
+The workspace includes driver activity filters, earnings and service-fee summaries, payout method/amount/number entry, review, processing, success, failure/retry, vehicle/category selection, sample verification documents, performance, preferences and safety/support. Payouts reserve the demo balance, reject duplicates and overdrafts, and release failed reservations once. Explicit simulation buttons choose the payout outcome. No real mobile money request or transfer occurs. Real driver authentication, dispatch, trip telemetry, payments, verification and durable history still require backend integration.
+
+Driver home now shares the rider map, precise-location action, draggable bottom-sheet behavior, vehicle imagery, service assets and neutral card styling. Request and active-trip screens use a wide map above a curved detail panel. Driver navigation includes Home, Activity, Earnings, Messages and Profile; the Earnings tab keeps the main navigation visible.
+
+Drivers can use **Switch to rider** on Home or Profile and **Switch to driver** from rider mode on the same session/account. This changes the active UI role without logging out, replacing the profile, resetting verification, or discarding either role’s history/balances. Switching takes the driver offline and clears an unaccepted offer. An active driver trip or rider booking blocks the switch until completed/canceled, preserving the current journey. Driver access remains available in rider mode and is cleared on logout. This session role switch does not bypass driver verification or enable live dispatch.
+
+### Driver Activity, Earnings, withdrawals and top-ups
+
+All driver areas now use the same screen header, typography, gray surfaces, official Zipp assets and button system. Activity includes searchable ride/delivery cards, status filters, active-trip resumption and detailed route-map receipts with fare/service-fee breakdowns, ratings, sharing and support. Earnings includes period filters, a chart built from actual session records, gross/fee/net summaries, recent earnings, withdrawal history and a shared-wallet entry. Returning from a withdrawal selects Earnings in the main driver navigation.
+
+Withdrawal screens cover provider selection, amount/number, review, processing, completion, failure, cancellation and retry. Canceling or failing releases the reserved earnings once. Top-ups cover the same entry/review/status/retry stages, have a separate request history, and credit the existing shared Zipp Wallet exactly once after explicit demo confirmation. Top-ups do not become withdrawable trip income. The wallet transaction list merges confirmed credits/debits with pending, failed and canceled top-up requests without duplicate entries. Retries keep the previous amount, provider and phone number. Demo outcome buttons are development-only; release builds cannot generate simulated funds or transfers.

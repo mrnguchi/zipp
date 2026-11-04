@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { StyleSheet, View } from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import { AppText as Text } from './AppText';
 import { colors } from '../constants/colors';
 const steps = ['Route', 'Package', 'Review'];
@@ -7,7 +7,7 @@ export function DeliveryBookingProgress({ step }: { step: number }) {
   return <View style={styles.progress} accessible accessibilityRole="progressbar" accessibilityLabel="Delivery booking progress" accessibilityValue={{ min: 1, max: 3, now: step + 1, text: `Step ${step + 1} of 3: ${steps[step]}` }}>
     {steps.map((label, index) => <Fragment key={label}>
       {index > 0 && <View style={[styles.connector, index <= step && styles.connectorComplete]} />}
-      <View style={styles.step}><View style={[styles.circle, index <= step && styles.activeCircle]}><Text style={[styles.number, index <= step && styles.activeNumber]}>{index + 1}</Text></View><Text style={[styles.label, index === step && styles.activeLabel]}>{label}</Text></View>
+      <View style={styles.step}><View style={[styles.circle, index <= step && styles.activeCircle]}><Text translate style={[styles.number, index <= step && styles.activeNumber]}>{index + 1}</Text></View><Text translate style={[styles.label, index === step && styles.activeLabel]}>{label}</Text></View>
     </Fragment>)}
   </View>;
 }

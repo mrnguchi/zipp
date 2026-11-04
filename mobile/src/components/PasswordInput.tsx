@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { LocalizedPressable as Pressable, LocalizedTextInput as TextInput } from './LocalizedNative';
 import type { TextInputProps } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../constants/colors';

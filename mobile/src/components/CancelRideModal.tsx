@@ -1,4 +1,5 @@
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {LocalizedPressable as Pressable} from './LocalizedNative';
+import {Modal, ScrollView, StyleSheet, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText as Text } from './AppText';
@@ -17,15 +18,15 @@ export function CancelRideModal({ visible, fare, onClose, onConfirm }: Props) {
         <Pressable accessibilityRole="button" accessibilityLabel="Close cancellation" onPress={onClose} style={styles.close}><Ionicons name="close" size={22} color={colors.navy} /></Pressable>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
           <View style={styles.icon}><Ionicons name="car-sport-outline" size={32} color={colors.navy} /></View>
-          <Text style={styles.title}>Cancel your ride?</Text>
-          <Text style={styles.copy}>Your driver is on the way. If you cancel, a fee of 25% of your ride fare will be charged to your Zipp Wallet.</Text>
+          <Text translate style={styles.title}>Cancel your ride?</Text>
+          <Text translate style={styles.copy}>Your driver is on the way. If you cancel, a fee of 25% of your ride fare will be charged to your Zipp Wallet.</Text>
           <View style={styles.summary}>
-            <View style={styles.row}><Text style={styles.label}>Ride fare</Text><Text style={styles.value}>{formatXaf(fare)}</Text></View>
-            <View style={styles.row}><Text style={styles.label}>Cancellation rate</Text><Text style={styles.value}>25%</Text></View>
-            <View style={[styles.row, styles.total]}><Text style={styles.totalLabel}>Wallet charge</Text><Text style={styles.amount}>{formatXaf(fee)}</Text></View>
+            <View style={styles.row}><Text translate style={styles.label}>Ride fare</Text><Text translate style={styles.value}>{formatXaf(fare)}</Text></View>
+            <View style={styles.row}><Text translate style={styles.label}>Cancellation rate</Text><Text translate style={styles.value}>25%</Text></View>
+            <View style={[styles.row, styles.total]}><Text translate style={styles.totalLabel}>Wallet charge</Text><Text translate style={styles.amount}>{formatXaf(fee)}</Text></View>
           </View>
           <ActionButton accessibilityLabel="Keep my ride" onPress={onClose}>Keep my ride</ActionButton>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Cancel ride and accept a ${formatXaf(fee)} wallet charge`} onPress={onConfirm} style={styles.cancel}><Text style={styles.cancelText}>Cancel ride · {formatXaf(fee)}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Cancel ride and accept a ${formatXaf(fee)} wallet charge`} onPress={onConfirm} style={styles.cancel}><Text translate style={styles.cancelText}>Cancel ride · {formatXaf(fee)}</Text></Pressable>
         </ScrollView>
       </View>
     </View>

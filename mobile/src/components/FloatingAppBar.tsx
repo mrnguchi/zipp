@@ -1,5 +1,6 @@
+import {LocalizedPressable as Pressable} from './LocalizedNative';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, View } from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText as Text } from './AppText';
@@ -11,23 +12,25 @@ const tabs = [
   { name: 'Messages', icon: 'chatbubble-outline', activeIcon: 'chatbubble' },
   { name: 'Account', icon: 'person-outline', activeIcon: 'person' },
 ] as const;
+const driverTabs=[tabs[0],tabs[1],{name:'Earnings',icon:'wallet-outline',activeIcon:'wallet'},tabs[2],tabs[3]] as const;
 
-export type AppTab = (typeof tabs)[number]['name'];
+export type AppTab = (typeof tabs)[number]['name']|'Earnings';
 const BAR_HEIGHT = 66;
 export const appBarContentInset = (bottomInset: number) => BAR_HEIGHT + Math.max(bottomInset, 12) + 24;
 
 type FloatingAppBarProps = {
   activeTab: AppTab;
   onTabPress: (tab: AppTab) => void;
+  driver?:boolean;
 };
 
-export function FloatingAppBar({ activeTab, onTabPress }: FloatingAppBarProps) {
+export function FloatingAppBar({ activeTab, onTabPress,driver=false }: FloatingAppBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View pointerEvents="box-none" style={styles.overlay}>
       <View style={[styles.bar, { bottom: Math.max(insets.bottom, 12) }]} accessibilityRole="tablist">
-        {tabs.map((tab) => {
+        {(driver?driverTabs:tabs).map((tab) => {
           const selected = activeTab === tab.name;
           return (
             <Pressable
@@ -41,7 +44,7 @@ export function FloatingAppBar({ activeTab, onTabPress }: FloatingAppBarProps) {
               <View style={[styles.iconWrap, selected && styles.activeIconWrap]}>
                 <Ionicons name={selected ? tab.activeIcon : tab.icon} size={23} color={selected ? '#FFFFFF' : '#999DA1'} />
               </View>
-              <Text style={[styles.label, selected && styles.activeLabel]}>{tab.name === 'Account' ? 'Profile' : tab.name}</Text>
+              <Text translate style={[styles.label, selected && styles.activeLabel]}>{tab.name === 'Account' ? 'Profile' : tab.name}</Text>
               <View style={[styles.dot, selected && styles.activeDot]} />
             </Pressable>
           );

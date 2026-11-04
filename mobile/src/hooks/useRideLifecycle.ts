@@ -4,10 +4,10 @@ import { subscribeRideEvents, transitionRide } from '../services/rideEvents';
 import type { RideEvent, RideSession } from '../services/rideEvents';
 import { formatXaf } from '../utils/formatCurrency';
 import { useWallet } from '../contexts/WalletContext';
+import type { NotificationEventKey } from '../services/notificationSounds';
 import { useActivity } from '../contexts/ActivityContext';
 import { rideActivity } from '../services/activityHistory';
 import type { RideActivityMeta } from '../services/activityHistory';
-import type { NotificationEventKey } from '../services/notificationSounds';
 
 export function useRideLifecycle(meta?: RideActivityMeta) {
   const [session, setSession] = useState<RideSession | null>(null);

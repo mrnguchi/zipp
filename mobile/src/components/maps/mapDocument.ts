@@ -6,20 +6,32 @@ import { courierIcon } from './courierAsset';
 
 // Pinned browser renderer inside Expo's supported WebView. Style and trip data
 // stay separate, so recoloring the base map never desaturates the green route.
-export function createMapDocument() {
+export function createMapDocument(mapboxToken = '') {
+  const trafficEnabled = mapboxToken.startsWith('pk.');
+  const rendererRoot = trafficEnabled ? 'https://api.mapbox.com/mapbox-gl-js/v3.33.0/mapbox-gl' : 'https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl';
   return `<!DOCTYPE html><html><head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<link href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css" rel="stylesheet">
+<link href="${rendererRoot}.css" rel="stylesheet">
 <style>html,body{margin:0;padding:0;width:100%;height:100%;background:${mapTheme.background};overflow:hidden;overscroll-behavior:none}#map{position:fixed;inset:0;margin:0;padding:0;background:${mapTheme.background};overflow:hidden}.pin{width:32px;height:32px;border:3px solid white;border-radius:50%;background:${mapTheme.accent};box-shadow:0 2px 8px #0002;display:flex;align-items:center;justify-content:center;color:white;font:700 18px sans-serif;box-sizing:border-box}.destination{border-radius:10px}.car{background:white;color:${mapTheme.accent};border-color:${mapTheme.accent}}</style>
 </head><body><div id="map"></div>
 <script>function send(data){if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify(data));}window.onerror=function(){send({type:'error'});};</script>
-<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js" onerror="send({type:'error'})"></script>
+<script src="${rendererRoot}.js" onerror="send({type:'error'})"></script>
 <script>
 var map,markers=[],driverMarkers={},current={},lastFit='',lastLocationRequest=null;
 try {
-map=new maplibregl.Map({container:'map',style:${JSON.stringify(createMapStyle())},center:[9.24,4.155],zoom:14.5,minZoom:5,maxZoom:19,attributionControl:false,pitchWithRotate:false,dragRotate:false});
+var renderer=${trafficEnabled ? 'mapboxgl' : 'maplibregl'};
+${trafficEnabled ? `renderer.accessToken=${JSON.stringify(mapboxToken)};` : ''}
+map=new renderer.Map({container:'map',style:${JSON.stringify(createMapStyle())},center:[9.24,4.155],zoom:15.5,minZoom:5,maxZoom:19,attributionControl:false,pitchWithRotate:false,dragRotate:false});
 map.touchZoomRotate.disableRotation();
 map.on('load',function(){
+  ${trafficEnabled ? `
+  var trafficUrl='https://api.mapbox.com/v4/mapbox.mapbox-traffic-v1.json?access_token='+encodeURIComponent(${JSON.stringify(mapboxToken)});
+  map.addSource('live-traffic',{type:'vector',url:trafficUrl});
+  map.addLayer({id:'live-traffic-flow',type:'line',source:'live-traffic','source-layer':'traffic',minzoom:8,filter:['match',['get','congestion'],['low','moderate','heavy','severe'],true,false],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['match',['get','congestion'],'low','#31A66A','moderate','#E8AE28','heavy','#E77932','severe','#C44343','#888888'],'line-width':['interpolate',['linear'],['zoom'],8,1,14,2.5,18,5],'line-offset':['interpolate',['linear'],['zoom'],8,0.5,18,4],'line-opacity':0.85}},'road-labels');
+  map.addLayer({id:'traffic-closures',type:'line',source:'live-traffic','source-layer':'traffic',filter:['==',['get','closed'],'yes'],paint:{'line-color':'#A62929','line-width':4,'line-dasharray':[1,1]}},'road-labels');
+  setInterval(function(){if(!document.hidden){var traffic=map.getSource('live-traffic');if(traffic)traffic.setUrl(trafficUrl+'&refresh='+Math.floor(Date.now()/480000));}},480000);
+  map.on('sourcedata',function(e){if(e.sourceId==='live-traffic'&&e.isSourceLoaded)send({type:'traffic-ready'});});
+  ` : ''}
   map.addSource('trip-route',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
   map.addLayer({id:'trip-route-outline',type:'line',source:'trip-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'#FFFFFF','line-width':9}});
   map.addLayer({id:'trip-route',type:'line',source:'trip-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'${mapTheme.accent}','line-width':5}});
@@ -28,7 +40,7 @@ map.on('load',function(){
   map.addLayer({id:'driver-route',type:'line',source:'driver-route',layout:{'line-join':'round','line-cap':'round'},paint:{'line-color':'${colors.yellow}','line-width':5}});
   send({type:'ready'});update(current);
 });
-map.on('error',function(){send({type:'error'});});
+map.on('error',function(e){if(e.sourceId==='live-traffic'){send({type:'traffic-error'});return;}send({type:'error'});});
 map.on('idle',function(){if(map.areTilesLoaded())send({type:'loaded'});});
 map.on('click',function(e){if(current.interactive!==false)send({type:'select',coordinate:{latitude:e.lngLat.lat,longitude:e.lngLat.lng}});});
 function lnglat(p){return [p.longitude,p.latitude];}
@@ -39,15 +51,15 @@ function addPin(point,type,label){
     el.style.cssText='position:relative;width:46px;height:46px;border:0;background:transparent;box-shadow:none;transition:transform 80ms linear;';
     var car=document.createElement('img');car.src=type==='courier'?${JSON.stringify(courierIcon)}:${JSON.stringify(driverCarIcon)};car.alt=type==='courier'?'Delivery courier':'Driver car';car.style.cssText='width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 3px #0003);transform-origin:center;';el.appendChild(car);
     var bubble=document.createElement('div');bubble.textContent=label||'';bubble.style.cssText='position:absolute;bottom:50px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:9px 12px;border-radius:14px;background:#FFFFFF;color:#121B26;font:600 12px sans-serif;box-shadow:0 3px 12px #0002;border-bottom:3px solid ${colors.yellow};';bubble.style.display=label?'block':'none';el.appendChild(bubble);
-    return {marker:new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map),bubble:bubble,car:car,coordinate:point,heading:null};
+    return {marker:new renderer.Marker({element:el}).setLngLat(lnglat(point)).addTo(map),bubble:bubble,car:car,coordinate:point,heading:null};
   }
   if(type==='current-location'){
     el.style.cssText='width:24px;height:24px;border:0;background:transparent;box-shadow:none;';
     var image=document.createElement('img');image.src=${JSON.stringify(currentLocationIcon)};image.alt='My location';image.style.cssText='width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #0002);';el.appendChild(image);
-    markers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat(lnglat(point)).addTo(map));return;
+    markers.push(new renderer.Marker({element:el,anchor:'bottom'}).setLngLat(lnglat(point)).addTo(map));return;
   }
   el.innerHTML=type==='car'?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 10l2-5h10l2 5M4 10h16v8H4zM6 18v3m12-3v3"/><circle cx="7" cy="14" r="1"/><circle cx="17" cy="14" r="1"/></svg>':type==='destination'?'&#9873;':'&#9679;';
-  markers.push(new maplibregl.Marker({element:el}).setLngLat(lnglat(point)).addTo(map));
+  markers.push(new renderer.Marker({element:el}).setLngLat(lnglat(point)).addTo(map));
 }
 function orientDriver(driver,point,heading){
   if(!Number.isFinite(heading)){
@@ -92,15 +104,16 @@ function update(data){
   points=points.concat(driverCoords,(current.drivers||[]).map(function(d){return lnglat(d.coordinate);}));
   if(current.cameraCoordinates&&current.cameraCoordinates.length)points=current.cameraCoordinates.map(lnglat);
   var bottom=Math.min(current.cameraBottomInset||0,window.innerHeight*0.85);
+  if(typeof document.querySelectorAll==='function')document.querySelectorAll('.mapboxgl-ctrl-bottom-left').forEach(function(control){control.style.bottom=(bottom+8)+'px';control.style.left='auto';control.style.right='8px';});
   var top=Math.min((current.topInset||0)+35,Math.max(10,(window.innerHeight-bottom)*0.45));
   var padding={top:top,bottom:bottom+20,left:45,right:45};
   if(current.locationFocus && current.locationFocus.requestId!==lastLocationRequest){
     lastLocationRequest=current.locationFocus.requestId;
-    map.easeTo({center:lnglat(current.locationFocus.coordinate),zoom:16,padding:padding,duration:650});
+    map.easeTo({center:lnglat(current.locationFocus.coordinate),zoom:16.5,padding:padding,duration:650});
   }
   var signature=JSON.stringify([points,current.topInset,bottom,window.innerHeight]);
   if(points.length && signature!==lastFit){
-    lastFit=signature;var bounds=new maplibregl.LngLatBounds(points[0],points[0]);points.forEach(function(p){bounds.extend(p);});
+    lastFit=signature;var bounds=new renderer.LngLatBounds(points[0],points[0]);points.forEach(function(p){bounds.extend(p);});
     map.fitBounds(bounds,{padding:padding,maxZoom:16,duration:350});
   }
 }

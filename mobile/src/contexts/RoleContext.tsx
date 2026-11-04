@@ -11,6 +11,7 @@ import type { UserRole } from '../types/domain';
 
 type RoleContextValue = {
   activeRole: UserRole | null;
+  driverAvailable: boolean;
   selectRole: (role: UserRole | null) => void;
 };
 
@@ -18,8 +19,9 @@ const RoleContext = createContext<RoleContextValue | undefined>(undefined);
 
 export function RoleProvider({ children }: PropsWithChildren) {
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
-  const selectRole = useCallback((role: UserRole | null) => setActiveRole(role), []);
-  const value = useMemo(() => ({ activeRole, selectRole }), [activeRole, selectRole]);
+  const [driverAvailable,setDriverAvailable]=useState(false);
+  const selectRole = useCallback((role: UserRole | null) => {setActiveRole(role);if(role==='driver')setDriverAvailable(true);else if(role===null)setDriverAvailable(false);}, []);
+  const value = useMemo(() => ({ activeRole, selectRole,driverAvailable }), [activeRole, selectRole,driverAvailable]);
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }

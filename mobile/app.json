@@ -15,24 +15,72 @@
       "expo-localization",
       "expo-asset",
       "expo-font",
-      ["expo-local-authentication", { "faceIDPermission": "Allow Zipp to use Face ID to unlock the app." }],
-      ["expo-audio", { "microphonePermission": "Allow Zipp to record voice messages you choose to send.", "recordAudioAndroid": true, "enableBackgroundPlayback": false }],
-      ["expo-image-picker", { "photosPermission": "Allow Zipp to select photos for delivery packages and conversations.", "cameraPermission": "Allow Zipp to take photos of delivery packages and conversation attachments.", "microphonePermission": "Allow Zipp to record voice messages you choose to send." }],
-      ["expo-location", {
-        "locationWhenInUsePermission": "Allow Zipp to show your current position on the map.",
-        "locationAlwaysPermission": false,
-        "locationAlwaysAndWhenInUsePermission": false,
-        "motionUsagePermission": false,
-        "isIosBackgroundLocationEnabled": false,
-        "isAndroidBackgroundLocationEnabled": false,
-        "isAndroidForegroundServiceEnabled": false
-      }]
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Zipp to use Face ID to unlock the app."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Zipp to record voice messages you choose to send.",
+          "recordAudioAndroid": true,
+          "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Zipp to choose photos for conversations and delivery packages.",
+          "cameraPermission": "Allow Zipp to capture verification documents, a live selfie, and delivery photos.",
+          "microphonePermission": "Allow Zipp to record voice messages you choose to send."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Zipp to show your current position on the map.",
+          "locationAlwaysPermission": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Zipp to capture verification documents, a live selfie, and delivery photos.",
+          "microphonePermission": "Allow Zipp to record voice messages you choose to send.",
+          "recordAudioAndroid": true,
+          "barcodeScannerEnabled": false
+        }
+      ],
+      "expo-document-picker",
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": false,
+          "supportsPictureInPicture": false
+        }
+      ],
+      [
+        "react-native-vision-camera",
+        {
+          "cameraPermissionText": "Allow Zipp to capture your live selfie for driver verification.",
+          "enableMicrophonePermission": false,
+          "enableFrameProcessors": true
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "softwareKeyboardLayoutMode": "resize"
     }
   }
 }

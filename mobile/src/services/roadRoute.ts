@@ -2,7 +2,9 @@ import type { MapCoordinate } from '../components/maps/mapGeometry';
 
 export type RoadRoute = { coordinates: MapCoordinate[]; distanceMeters: number; durationSeconds: number };
 const endpoint = process.env.EXPO_PUBLIC_ROUTING_URL || 'https://router.project-osrm.org/route/v1/driving';
-const cache = new Map<string, RoadRoute>();
+// Reuse rapid repeated searches without retaining a stale route for the whole session.
+const ROUTE_CACHE_MS = 2 * 60 * 1000;
+const cache = new Map<string, { route: RoadRoute; fetchedAt: number }>();
 
 export function validCoordinate(point: MapCoordinate): boolean {
   return Number.isFinite(point.latitude) && Number.isFinite(point.longitude) && Math.abs(point.latitude) <= 90 && Math.abs(point.longitude) <= 180;
@@ -22,15 +24,15 @@ export function parseRoadRoute(data: unknown): RoadRoute {
   return { coordinates, distanceMeters: route.distance, durationSeconds: route.duration };
 }
 
-export async function fetchRoadRoute(pickup: MapCoordinate, destination: MapCoordinate, signal: AbortSignal): Promise<RoadRoute> {
+export async function fetchRoadRoute(pickup: MapCoordinate, destination: MapCoordinate, signal: AbortSignal, refresh = false): Promise<RoadRoute> {
   if (!validCoordinate(pickup) || !validCoordinate(destination)) throw new Error('Invalid route stops');
   const key = `${pickup.longitude},${pickup.latitude};${destination.longitude},${destination.latitude}`;
   const cached = cache.get(key);
-  if (cached) return cached;
+  if (!refresh && cached && Date.now() - cached.fetchedAt < ROUTE_CACHE_MS) return cached.route;
   const response = await fetch(`${endpoint.replace(/\/+$/, '')}/${key}?overview=full&geometries=geojson&steps=false&alternatives=false&radiuses=200;200`, { signal, headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('Routing unavailable');
   const route = parseRoadRoute(await response.json());
   if (cache.size >= 20) cache.delete(cache.keys().next().value!);
-  cache.set(key, route);
+  cache.set(key, { route, fetchedAt: Date.now() });
   return route;
 }

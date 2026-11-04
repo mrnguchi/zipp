@@ -1,10 +1,11 @@
+import {LocalizedPressable as Pressable, LocalizedTextInput as TextInput} from '../components/LocalizedNative';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, Animated, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
+import {ActivityIndicator, Animated, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NotificationList } from '../components/NotificationList';
 import { WalletSheetContent } from '../components/WalletSheetContent';
@@ -19,6 +20,8 @@ import { profileDisplayName, useProfile } from '../contexts/ProfileContext';
 import { useHomeSheet } from '../hooks/useHomeSheet';
 import { useMyLocation } from '../hooks/useMyLocation';
 import type { RootStackParamList } from '../navigation/types';
+import {AccountModeSwitch} from '../components/AccountModeSwitch';
+import {useRole} from '../contexts/RoleContext';
 
 type Panel = 'wallet' | 'topup' | 'notifications' | null;
 type Props = { contentBottomInset?: number; onOpenActivity: () => void };
@@ -40,6 +43,7 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
   const sheet = useHomeSheet(screenHeight, insets.top, 0.46);
   const { locating, locationFocus, locate } = useMyLocation();
   const { profile } = useProfile();
+  const {driverAvailable}=useRole();
   const displayName = profileDisplayName(profile) || 'Suh';
   const wallet = useWallet();
   const [panel, setPanel] = useState<Panel>(null);
@@ -61,16 +65,17 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
   return <View style={styles.screen} onLayout={event => { if (event.nativeEvent.layout.height > 0) setScreenHeight(event.nativeEvent.layout.height); }}>
     <StatusBar style="dark" />
       <View style={styles.mapSection}>
-        <RideMap bottomInset={0} attributionBottomInset={sheet.expandedHeight} overlayTranslateY={sheet.translateY} cameraBottomInset={sheet.expanded ? sheet.expandedHeight : sheet.collapsedHeight} locationFocus={locationFocus} topInset={insets.top + 148} showControls={false} />
+        <RideMap bottomInset={0} attributionBottomInset={sheet.expandedHeight} overlayTranslateY={sheet.translateY} cameraBottomInset={sheet.expanded ? sheet.expandedHeight : sheet.collapsedHeight} locationFocus={locationFocus} topInset={insets.top + 148+(driverAvailable?52:0)} showControls={false} />
       </View>
       <View pointerEvents="box-none" style={[styles.homeTop, { paddingTop: insets.top + 12 }]}>
       <View pointerEvents="none" style={styles.headerBackground} />
+      <AccountModeSwitch/>
       <View style={styles.header}>
-        <View style={{ flex: 1 }}><Text style={styles.greeting}>{greeting}</Text>{displayName && <Text style={styles.welcome} numberOfLines={1}>{displayName} 👋</Text>}</View>
+        <View style={{ flex: 1 }}><Text translate style={styles.greeting}>{greeting}</Text>{displayName && <Text translate style={styles.welcome} numberOfLines={1}>{displayName} 👋</Text>}</View>
         <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => setPanel('notifications')} style={styles.notificationButton}><Ionicons name="notifications" size={27} color={colors.navy} /></Pressable>
       </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Where to? Book a ride" onPress={bookRide} style={({ pressed }) => [styles.search, pressed && styles.pressed]}>
-          <Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.locationIcon} /><Text style={styles.searchText}>Where to?</Text>
+          <Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.locationIcon} /><Text translate style={styles.searchText}>Where to?</Text>
         </Pressable>
       </View>
       <Animated.View pointerEvents={sheet.expanded ? 'none' : 'box-none'} style={[styles.mapButtons, { bottom: sheet.expandedHeight + 34, transform: [{ translateY: sheet.translateY }], opacity: sheet.translateY.interpolate({ inputRange: [0, Math.max(1, sheet.travel * 0.7), Math.max(2, sheet.travel)], outputRange: [0, 0, 1], extrapolate: 'clamp' }) }]}>
@@ -86,12 +91,12 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.body, { paddingBottom: contentBottomInset + (sheet.expanded ? 0 : sheet.travel) }]}>
         <View style={styles.row}>
           <View style={styles.summaryCard}>
-            <View style={styles.between}><Text style={styles.caption}>Wallet balance</Text><Pressable accessibilityRole="button" accessibilityLabel={hidden ? 'Show balance' : 'Hide balance'} onPress={() => setHidden(value => !value)} hitSlop={8} style={{ padding: 4 }}><Ionicons name={hidden ? 'eye-off-outline' : 'eye-outline'} size={15} color={colors.secondaryText} /></Pressable></View>
-            <View style={styles.balanceRow}><Text numberOfLines={1} adjustsFontSizeToFit style={[styles.stat, styles.balanceAmount]}>{hidden ? '••••' : wallet.available.toLocaleString('en-GB')}</Text><Text style={styles.currency}>XAF</Text></View>
-            <Pressable accessibilityRole="button" onPress={() => setPanel('topup')} style={styles.topup}><Text style={styles.topupPlus}>+</Text><Text style={styles.topupText}>Top up</Text></Pressable>
+            <View style={styles.between}><Text translate style={styles.caption}>Wallet balance</Text><Pressable accessibilityRole="button" accessibilityLabel={hidden ? 'Show balance' : 'Hide balance'} onPress={() => setHidden(value => !value)} hitSlop={8} style={{ padding: 4 }}><Ionicons name={hidden ? 'eye-off-outline' : 'eye-outline'} size={15} color={colors.secondaryText} /></Pressable></View>
+            <View style={styles.balanceRow}><Text translate numberOfLines={1} adjustsFontSizeToFit style={[styles.stat, styles.balanceAmount]}>{hidden ? '••••' : wallet.available.toLocaleString('en-GB')}</Text><Text translate style={styles.currency}>XAF</Text></View>
+            <Pressable accessibilityRole="button" onPress={() => setPanel('topup')} style={styles.topup}><Text translate style={styles.topupPlus}>+</Text><Text translate style={styles.topupText}>Top up</Text></Pressable>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="View trip activity" onPress={onOpenActivity} style={({ pressed }) => [styles.summaryCard, pressed && styles.pressed]}>
-            <View style={styles.between}><Text style={styles.caption}>Trips</Text><Ionicons name="chevron-forward" size={15} color={colors.secondaryText} /></View><Text style={[styles.stat, styles.tripCount]}>{previewSummary.weeklyTrips}</Text><Text style={styles.period}>This week</Text>
+            <View style={styles.between}><Text translate style={styles.caption}>Trips</Text><Ionicons name="chevron-forward" size={15} color={colors.secondaryText} /></View><View style={styles.tripCountArea}><Text translate style={[styles.stat, styles.tripCount]}>{previewSummary.weeklyTrips}</Text></View><Text translate style={styles.period}>This week</Text>
           </Pressable>
         </View>
         <View style={styles.row}>
@@ -99,36 +104,36 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
             { label: 'Ride', image: require('../../assets/ride.png'), action: () => navigation.navigate('BookRide') },
             { label: 'Delivery', image: require('../../assets/delivery-button.png'), action: () => navigation.navigate('Delivery') },
             { label: 'Wallet', image: require('../../assets/wallet.png'), action: () => setPanel('wallet') },
-          ] as const).map(item => <Pressable key={item.label} accessibilityRole="button" onPress={item.action} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Image source={item.image} resizeMode="contain" style={styles.actionIcon} /><Text style={styles.actionText}>{item.label}</Text></Pressable>)}
+          ] as const).map(item => <Pressable key={item.label} accessibilityRole="button" onPress={item.action} style={({ pressed }) => [styles.action, pressed && styles.pressed]}><Image source={item.image} resizeMode="contain" style={styles.actionIcon} /><Text  style={styles.actionText}>{item.label}</Text></Pressable>)}
         </View>
         <View>
-          <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Saved Places</Text><Pressable accessibilityRole="button" onPress={openPlaces} style={styles.seeAll}><Text style={styles.smallText}>See all</Text><Ionicons name="chevron-forward" size={13} color={colors.secondaryText} /></Pressable></View>
+          <View style={styles.sectionHeader}><Text translate style={styles.sectionTitle}>Saved Places</Text><Pressable accessibilityRole="button" onPress={openPlaces} style={styles.seeAll}><Text translate style={styles.smallText}>See all</Text><Ionicons name="chevron-forward" size={13} color={colors.secondaryText} /></Pressable></View>
           <View style={styles.savedCard}>
             {(['Home', 'Work'] as const).map((place, index) => <Pressable key={place} accessibilityRole="button" accessibilityLabel={places[place] ? `Book a ride to ${place}, ${places[place]?.label}` : `Add ${place.toLowerCase()} address`} onPress={() => places[place] ? navigation.navigate('BookRide', { destinationLabel: places[place]?.label, destinationCoordinate: places[place]?.coordinate }) : navigation.navigate('SavedPlaces', { kind: place === 'Home' ? 'home' : 'work' })} style={({ pressed }) => [styles.savedRow, index === 1 && styles.divider, pressed && styles.pressed]}>
-              <View style={styles.placeIcon}><Ionicons name={place === 'Home' ? 'home' : 'briefcase'} size={19} color={colors.primary} /></View><View style={{ flex: 1, gap: 2 }}><Text style={styles.placeName}>{place}</Text><Text style={styles.smallText} numberOfLines={1}>{places[place]?.label || `Add ${place.toLowerCase()} address`}</Text></View><Ionicons name={places[place] ? 'chevron-forward' : 'add'} size={17} color={places[place] ? "#929B99" : colors.yellow} />
+              <View style={styles.placeIcon}><Ionicons name={place === 'Home' ? 'home' : 'briefcase'} size={19} color={colors.primary} /></View><View style={{ flex: 1, gap: 2 }}><Text translate style={styles.placeName}>{place}</Text><Text translate style={styles.smallText} numberOfLines={1}>{places[place]?.label || `Add ${place.toLowerCase()} address`}</Text></View><Ionicons name={places[place] ? 'chevron-forward' : 'add'} size={17} color={places[place] ? "#929B99" : colors.yellow} />
             </Pressable>)}
           </View>
         </View>
         <View>
-          <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Earn with Zipp</Text></View>
+          <View style={styles.sectionHeader}><Text translate style={styles.sectionTitle}>Earn with Zipp</Text></View>
           <View style={styles.row}>
             {([
               { role: 'driver', image: require('../../assets/how to be a driver.png') },
               { role: 'rider', image: require('../../assets/how to be a rider.png') },
             ] as const).map(({ role, image }) => <Pressable key={role} accessibilityRole="button" accessibilityLabel={`How to be a Zipp ${role}`} onPress={() => navigation.navigate('RoleGuide', { role })} style={({ pressed }) => [styles.joinCard, pressed && styles.pressed]}>
-              <Image source={image} resizeMode="cover" style={styles.joinImage} /><View style={[styles.joinOverlay, role === 'driver' && { backgroundColor: 'rgba(13,24,37,0.46)' }]} /><View style={styles.joinContent}><Text style={styles.joinTitle}>How to be a{'\n'}Zipp {role}</Text><View style={styles.joinCta}><Ionicons name="arrow-forward" size={16} color={colors.navy} style={{ transform: [{ rotate: '-45deg' }] }} /></View></View>
+              <Image source={image} resizeMode="cover" style={styles.joinImage} /><View style={[styles.joinOverlay, role === 'driver' && { backgroundColor: 'rgba(13,24,37,0.46)' }]} /><View style={styles.joinContent}><Text translate style={styles.joinTitle}>How to be a{'\n'}Zipp {role}</Text><View style={styles.joinCta}><Ionicons name="arrow-forward" size={16} color={colors.navy} style={{ transform: [{ rotate: '-45deg' }] }} /></View></View>
             </Pressable>)}
           </View>
         </View>
         </ScrollView>
       </Animated.View>
     <Modal transparent visible={panel !== null} animationType="slide" onRequestClose={closePanel}>
-      <KeyboardAvoidingView style={styles.modalRoot} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.modalRoot} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Pressable accessibilityRole="button" accessibilityLabel="Close panel" onPress={closePanel} style={styles.backdrop} />
         <View style={[styles.panel, { paddingBottom: Math.max(insets.bottom, 24) }, (panel === 'wallet' || panel === 'topup') && { height: height * 0.8 }]} accessibilityViewIsModal>
-          <View style={styles.panelHandle} /><View style={styles.between}><Text style={styles.panelTitle}>{panel && titles[panel]}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={closePanel} style={styles.roundButton}><Ionicons name="close" size={22} color={colors.navy} /></Pressable></View>
+          <View style={styles.panelHandle} /><View style={styles.between}><Text translate style={styles.panelTitle}>{panel && titles[panel]}</Text><Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={closePanel} style={styles.roundButton}><Ionicons name="close" size={22} color={colors.navy} /></Pressable></View>
           {panel === 'wallet' ? <WalletSheetContent onTopUp={() => setPanel('topup')} /> : panel === 'topup' ? <WalletTopUp ref={topUpRef} onClose={() => setPanel(null)} onBack={() => setPanel('wallet')} /> : panel === 'notifications' ? <NotificationList /> : <>
-            <View style={styles.panelIcon}><Ionicons name="wallet-outline" size={30} color={colors.primary} /></View><Text style={styles.panelCopy}>{panel && messages[panel]}</Text>
+            <View style={styles.panelIcon}><Ionicons name="wallet-outline" size={30} color={colors.primary} /></View><Text translate style={styles.panelCopy}>{panel && messages[panel]}</Text>
           </>}
         </View>
       </KeyboardAvoidingView>
@@ -161,8 +166,9 @@ const styles = StyleSheet.create({
   balanceRow: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   balanceAmount: { flexShrink: 1 },
   stat: { fontSize: 24, lineHeight: 36, fontWeight: '700', color: colors.navy },
-  tripCount: { color: colors.yellow },
-  currency: { fontSize: 11, fontWeight: '600', color: colors.yellow },
+  tripCountArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
+  tripCount: { fontSize: 40, lineHeight: 48, textAlign: 'center', color: colors.yellow, textShadowColor: '#8A6C19', textShadowOffset: { width: 0.5, height: 0.5 }, textShadowRadius: 1 },
+  currency: { fontSize: 11, fontWeight: '600', color: colors.yellow, textShadowColor: '#8A6C19', textShadowOffset: { width: 0.5, height: 0.5 }, textShadowRadius: 1 },
   topup: { alignSelf: 'stretch', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 9, paddingHorizontal: 12, minHeight: 36, borderRadius: 18, backgroundColor: colors.primary, marginTop: 'auto' },
   topupPlus: { fontSize: 19, lineHeight: 24, fontWeight: '700', color: colors.white },
   topupText: { fontSize: 11, fontWeight: '500', color: '#FFFFFF' },
@@ -188,7 +194,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.75 },
   modalRoot: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(18,27,38,0.4)' },
-  panel: { paddingHorizontal: 24, paddingTop: 12, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, gap: 16 },
+  panel: { flexShrink: 1, maxHeight: '100%', paddingHorizontal: 24, paddingTop: 12, backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28, gap: 16 },
   panelHandle: { width: 36, height: 4, backgroundColor: '#D9DFDB', borderRadius: 2, alignSelf: 'center' },
   panelTitle: { fontSize: 21, fontWeight: '600', color: colors.navy },
   panelCopy: { fontSize: 13, lineHeight: 22, fontWeight: '500', color: colors.secondaryText },

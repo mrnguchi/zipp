@@ -10,6 +10,34 @@ function load(file) {
   vm.runInNewContext(code, { exports, require: name => load(path.resolve(path.dirname(file), name + '.ts')) });
   return exports;
 }
+
+test('traffic uses a public token, keeps congestion beneath trip routes, and isolates traffic errors', () => {
+  const { createMapDocument } = load(path.resolve(__dirname, '../src/components/maps/mapDocument.ts'));
+  assert.ok(!createMapDocument().includes("map.addSource('live-traffic'"));
+  const html = createMapDocument('pk.test-token');
+  assert.match(html, /api\.mapbox\.com\/mapbox-gl-js/);
+  const handlers = {}, sources = {}, layers = [], events = [];
+  let refresh;
+  class Map {
+    constructor() { for (const name of ['dragPan','scrollZoom','boxZoom','doubleClickZoom','touchZoomRotate']) this[name] = {disableRotation(){},enable(){},disable(){}}; }
+    setPaintProperty() {}
+    on(name, callback) { handlers[name] = callback; }
+    addSource(id, source) { sources[id] = source; }
+    addLayer(layer) { layers.push(layer); }
+    getSource(id) { return sources[id] ? {setUrl(url){sources[id].url=url;},setData(){}} : undefined; }
+  }
+  const context = {mapboxgl:{Map},window:{addEventListener(){},ReactNativeWebView:{postMessage(value){events.push(JSON.parse(value));}}},document:{hidden:false},setInterval(fn){refresh=fn;}};
+  for(const match of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) vm.runInNewContext(match[1],context);
+  handlers.load();
+  assert.ok(sources['live-traffic'].url.includes('mapbox.mapbox-traffic-v1'));
+  assert.ok(layers.findIndex(layer=>layer.id==='live-traffic-flow') < layers.findIndex(layer=>layer.id==='trip-route'));
+  assert.match(JSON.stringify(layers[0].filter),/congestion/);
+  handlers.error({sourceId:'live-traffic'});
+  assert.equal(events.at(-1).type,'traffic-error');
+  assert.ok(!events.some(event=>event.type==='error'));
+  refresh();assert.match(sources['live-traffic'].url,/refresh=/);
+  handlers.error({sourceId:'openmaptiles'});assert.equal(events.at(-1).type,'error');
+});
 test('GPS replaces coincident pickup, while distinct pickup and destination stay visible', () => {
   const { createMapDocument } = load(path.resolve(__dirname, '../src/components/maps/mapDocument.ts'));
   const scripts = [...createMapDocument().matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map(match => match[1]);

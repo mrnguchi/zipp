@@ -1,6 +1,7 @@
+import {LocalizedPressable as Pressable} from './LocalizedNative';
 import { useMemo } from 'react';
 import type { PropsWithChildren } from 'react';
-import { PanResponder, Pressable, StyleSheet, View } from 'react-native';
+import {PanResponder, StyleSheet, View} from 'react-native';
 import { colors } from '../constants/colors';
 
 type Props = PropsWithChildren<{
