@@ -32,6 +32,8 @@ function harness({ enrolled = true, platform = 'android', face = false, expoGo =
     if (name === 'expo-constants') return { __esModule: true, default: { executionEnvironment: expoGo ? 'storeClient' : 'bare' } };
     if (name === '@expo/vector-icons') return { Ionicons: 'Icon' };
     if (name === '../components/ActionButton') return { ActionButton: 'ActionButton' };
+    if (name.includes('AppText')) return {AppText:'Text'};
+    if (name.includes('LocalizedNative')) return {LocalizedPressable:'Pressable',LocalizedTextInput:'TextInput'};
     throw Error(name);
   }});
   function render() { cursor = 0; effects = []; tree = exports.BiometricProvider({ children: null }); effects.forEach(effect => effect()); return tree.props.value; }

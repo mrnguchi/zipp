@@ -1,36 +1,38 @@
+import {LocalizedPressable as Pressable} from '../../components/LocalizedNative';
+import {AppText as Text} from '../../components/AppText';
 import type { ComponentProps, PropsWithChildren } from 'react';
 import { MessagingIcon as Ionicons } from '../../components/MessagingIcon';
 import { useNavigation } from '@react-navigation/native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import {Image, StyleSheet, View, KeyboardAvoidingView, Platform} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../constants/colors';
 import type { Conversation, TripDetails } from '../../services/messaging';
 
 export function Avatar({ conversation, size = 52 }: { conversation: Pick<Conversation, 'initials' | 'role'>; size?: number }) {
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: conversation.role === 'Support' ? colors.primary : colors.iconBackground, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: size * 0.3, fontWeight: '700', color: conversation.role === 'Support' ? colors.white : colors.primaryDark }}>{conversation.initials}</Text></View>;
+  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: conversation.role === 'Support' ? colors.primary : colors.iconBackground, alignItems: 'center', justifyContent: 'center' }}><Text translate style={{ fontSize: size * 0.3, fontWeight: '700', color: conversation.role === 'Support' ? colors.white : colors.primaryDark }}>{conversation.initials}</Text></View>;
 }
 export function IconButton({ icon, label, onPress, disabled = false, yellow = false }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; onPress: () => void; disabled?: boolean; yellow?: boolean }) {
   return <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} style={({pressed}) => [ui.iconButton, yellow && {backgroundColor:colors.yellow+'26'}, (pressed||disabled)&&{opacity:0.45}]}><Ionicons name={icon} size={23} color={colors.primaryDark} /></Pressable>;
 }
 export function MessagingFrame({ title, children, right }: PropsWithChildren<{title:string;right?:React.ReactNode}>) {
   const navigation=useNavigation();
-  return <SafeAreaView style={ui.screen} edges={['top','left','right','bottom']}><View style={ui.header}><IconButton icon="chevron-back" label="Back" onPress={() => navigation.goBack()} /><Text style={ui.headerTitle}>{title}</Text><View style={ui.headerRight}>{right}</View></View>{children}</SafeAreaView>;
+  return <SafeAreaView style={ui.screen} edges={['top','left','right','bottom']}><View style={ui.header}><IconButton icon="chevron-back" label="Back" onPress={() => navigation.goBack()} /><Text translate style={ui.headerTitle}>{title}</Text><View style={ui.headerRight}>{right}</View></View><KeyboardAvoidingView style={ui.flex} behavior={Platform.OS==='ios'?'padding':'height'}>{children}</KeyboardAvoidingView></SafeAreaView>;
 }
 export function TripCard({ trip, onPress, inChat = false }: {trip:TripDetails;onPress?:()=>void;inChat?:boolean}) {
   const content=<>
     <View style={ui.tripTop}>
       <Image source={require('../../../assets/chat-trip-car.png')} resizeMode="contain" style={ui.tripCarImage} accessible={false} />
-      <View style={ui.flex}><Text style={ui.tripTitle}>Your Zipp ride</Text><Text style={ui.tripSubtitle}>{trip.vehicle}</Text><Text style={ui.plateText}>{trip.plate}</Text></View>
+      <View style={ui.flex}><Text translate style={ui.tripTitle}>Your Zipp ride</Text><Text  style={ui.tripSubtitle}>{trip.vehicle}</Text><Text  style={ui.plateText}>{trip.plate}</Text></View>
     </View>
     <View style={ui.tripRoute}>
-      <View style={ui.tripStop}><Ionicons name="radio-button-on" size={15} color={colors.primary} /><Text style={[ui.tripLocation,ui.flex]}>{trip.pickup}</Text></View>
-      <View style={ui.tripStop}><Ionicons name="location" size={17} color={colors.primary} /><Text style={[ui.tripLocation,ui.flex]}>{trip.destination}</Text></View>
+      <View style={ui.tripStop}><Ionicons name="radio-button-on" size={15} color={colors.primary} /><Text  style={[ui.tripLocation,ui.flex]}>{trip.pickup}</Text></View>
+      <View style={ui.tripStop}><Ionicons name="location" size={17} color={colors.primary} /><Text  style={[ui.tripLocation,ui.flex]}>{trip.destination}</Text></View>
     </View>
   </>;
   return onPress?<Pressable accessibilityRole="button" accessibilityLabel="View trip details" onPress={onPress} style={({pressed})=>[ui.tripCard,inChat&&ui.chatTripCard,pressed&&{opacity:0.7}]}>{content}</Pressable>:<View style={[ui.tripCard,inChat&&ui.chatTripCard]}>{content}</View>;
 }
 export function EmptyState({title,body,icon='chatbubbles-outline'}:{title:string;body:string;icon?:ComponentProps<typeof Ionicons>['name']}) {
-  return <View style={ui.empty}><View style={ui.emptyIcon}><Ionicons name={icon} size={32} color={colors.primary} /></View><Text style={ui.emptyTitle}>{title}</Text><Text style={[ui.body,{textAlign:'center'}]}>{body}</Text></View>;
+  return <View style={ui.empty}><View style={ui.emptyIcon}><Ionicons name={icon} size={32} color={colors.primary} /></View><Text translate style={ui.emptyTitle}>{title}</Text><Text translate style={[ui.body,{textAlign:'center'}]}>{body}</Text></View>;
 }
 export function timeLabel(time:number) { return new Intl.DateTimeFormat('en-GB',{hour:'numeric',minute:'2-digit'}).format(new Date(time)); }
 export function dateLabel(time:number) { const now=new Date();const date=new Date(time);return date.toDateString()===now.toDateString()?'Today':new Intl.DateTimeFormat('en-GB',{day:'numeric',month:'short'}).format(date); }

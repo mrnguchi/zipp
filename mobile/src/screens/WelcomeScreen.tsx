@@ -2,7 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import {Image, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
@@ -36,7 +36,7 @@ export function WelcomeScreen() {
         </View>
 
         <View style={styles.intro}>
-          <Text style={[styles.heading, { color: colors.navy }]}>
+          <Text translate style={[styles.heading, { color: colors.navy }]}>
             {t('welcome.title')}
           </Text>
         </View>
@@ -48,7 +48,7 @@ export function WelcomeScreen() {
             resizeMode="contain"
             style={[styles.illustration, { height: illustrationHeight }]}
           />
-          <Text
+          <Text translate
             numberOfLines={3}
             style={[styles.subtitle, { color: colors.mutedText }]}
           >

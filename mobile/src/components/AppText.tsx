@@ -1,12 +1,16 @@
 import { StyleSheet, Text, useWindowDimensions } from 'react-native';
 import type { TextProps, TextStyle } from 'react-native';
+import type {ReactNode} from 'react';
+import {useTranslation} from 'react-i18next';
+import {translateUI} from '../i18n/ui';
 
 import { theme } from '../theme';
 import { screenTextScale } from '../utils/responsiveTypography';
 
-type AppTextProps = TextProps;
+type AppTextProps = TextProps & {translate?:boolean};
 
-export function AppText({ style, ...props }: AppTextProps) {
+export function AppText({ style, translate=false, children, ...props }: AppTextProps) {
+  useTranslation('ui',{useSuspense:false});
   const { width, height } = useWindowDimensions();
   const textStyle = StyleSheet.flatten(style);
   const fontWeight = textStyle?.fontWeight;
@@ -33,5 +37,6 @@ export function AppText({ style, ...props }: AppTextProps) {
     ...(textStyle?.lineHeight !== undefined && { lineHeight: textStyle.lineHeight * scale }),
   };
 
-  return <Text {...props} style={resolvedStyle} />;
+  function localize(value:ReactNode):ReactNode {return typeof value==='string'?translateUI(value):Array.isArray(value)?value.map(localize):value;}
+  return <Text {...props} style={resolvedStyle}>{translate?localize(children):children}</Text>;
 }

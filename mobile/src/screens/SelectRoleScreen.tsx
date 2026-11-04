@@ -1,8 +1,9 @@
+import {LocalizedPressable as Pressable} from '../components/LocalizedNative';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
 
@@ -35,8 +36,10 @@ export function SelectRoleScreen() {
   };
 
   const continueToHome = () => {
-    selectRole(selectedRole ?? 'sender');
-    navigation.navigate('RoleHome');
+    if (!selectedRole) return;
+    if (selectedRole === 'driver') { navigation.navigate('DriverType'); return; }
+    selectRole('rider');
+    navigation.navigate('SignupWelcome', {role:'rider'});
   };
 
   return (
@@ -49,7 +52,7 @@ export function SelectRoleScreen() {
           onPress={() => navigation.goBack()}
           style={styles.back}
         >
-          <Text style={[styles.backLabel, { color: colors.dark }]}>
+          <Text translate style={[styles.backLabel, { color: colors.dark }]}>
             {t('common.back')}
           </Text>
         </Pressable>
@@ -60,13 +63,11 @@ export function SelectRoleScreen() {
           resizeMode="contain"
           style={styles.logo}
         />
-        <Text style={[styles.eyebrow, { color: colors.primary }]}>
+        <Text translate style={[styles.eyebrow, { color: colors.primary }]}>
           {t('selectRole.eyebrow')}
         </Text>
-        <Text style={[styles.heading, { color: colors.secondaryText }]}>
-          {t('selectRole.promptPrefix')}{' '}
-          <Text style={{ color: colors.primary }}>{t('selectRole.getStarted')}</Text>
-          {t('selectRole.promptSuffix')}
+        <Text translate style={[styles.heading, { color: colors.secondaryText }]}>
+          How would you like to use Zipp?
         </Text>
 
         <View style={styles.footer}>
@@ -79,14 +80,14 @@ export function SelectRoleScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
                 accessibilityLabel={t(`selectRole.${role}`)}
-                onPress={() => toggleRole(role)}
+                onPress={() => { setSelectedRole(role); if(role==='driver') navigation.navigate('DriverType'); }}
                 style={[
                   styles.roleCard,
-                  { backgroundColor: selected ? palette.primarySoft : colors.input },
+                  { backgroundColor: selected?colors.yellow:colors.iconBackground },
                 ]}
               >
                 <View style={styles.cardHeader}>
-                  <Text style={[styles.roleTitle, { color: colors.primary }]}>
+                  <Text translate style={[styles.roleTitle, { color: colors.primary }]}>
                     {t(`selectRole.${role}`)}
                   </Text>
                   <View
@@ -110,6 +111,7 @@ export function SelectRoleScreen() {
           <View style={styles.actionButtonWrap}>
             <ActionButton
               accessibilityLabel={t('selectRole.getStarted')}
+              disabled={!selectedRole}
               onPress={continueToHome}
             >
               {t('selectRole.getStarted')}

@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import {LocalizedPressable as Pressable} from '../components/LocalizedNative';
+import { DriverHomeScreen } from './signup/DriverHomeScreen';
+import { useRole } from '../contexts/RoleContext';
+import { useEffect,useState } from 'react';
+import {useNavigation,useRoute} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {RootStackParamList} from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
@@ -11,11 +18,18 @@ import { RoleHomeScreen } from './RoleHomeScreen';
 import { ActivityScreen } from './ActivityScreen';
 import { ProfileScreen } from './profile/ProfileScreen';
 import { MessagesScreen } from './messaging/MessagesScreen';
+import {DriverHistory,DriverScreen} from './driver/DriverScreens';
+import {useKeyboardVisible} from '../hooks/useKeyboardVisible';
 
 const filters = ['All', 'Rides', 'Deliveries'] as const;
 
 export function MainTabsScreen() {
+  const keyboardVisible=useKeyboardVisible();
+  const {activeRole}=useRole();
   const [activeTab, setActiveTab] = useState<AppTab>('Home');
+  useEffect(()=>setActiveTab('Home'),[activeRole]);
+  const route=useRoute<RouteProp<RootStackParamList,'RoleHome'>>(),navigation=useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  useEffect(()=>{if(route.params?.driverTab){setActiveTab(route.params.driverTab==='Earnings'&&activeRole!=='driver'?'Home':route.params.driverTab);navigation.setParams({driverTab:undefined});}},[route.params?.driverTab,activeRole,navigation]);
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
   const insets = useSafeAreaInsets();
   const contentBottomInset = appBarContentInset(insets.bottom);
@@ -24,13 +38,14 @@ export function MainTabsScreen() {
     <View style={styles.screen}>
       <View style={styles.pages}>
         <View style={[styles.page, activeTab !== 'Home' && styles.hidden]}>
-          <RoleHomeScreen contentBottomInset={contentBottomInset} onOpenActivity={() => setActiveTab('Activity')} />
+          {activeRole==='driver'?<DriverHomeScreen bottomInset={contentBottomInset}/>:<RoleHomeScreen contentBottomInset={contentBottomInset} onOpenActivity={() => setActiveTab('Activity')} />}
         </View>
-        {activeTab === 'Activity' && <ActivityScreen contentBottomInset={contentBottomInset} />}
+        {activeTab === 'Activity' && (activeRole==='driver'?<DriverHistory embedded bottomInset={contentBottomInset}/>:<ActivityScreen contentBottomInset={contentBottomInset} />)}
         {activeTab === 'Messages' && <MessagesScreen bottomInset={contentBottomInset} />}
+        {activeTab === 'Earnings' && activeRole==='driver'&&<DriverScreen view="DriverEarnings" embedded bottomInset={contentBottomInset}/>}
         {activeTab === 'Account' && <ProfileScreen bottomInset={contentBottomInset} />}
       </View>
-      <FloatingAppBar activeTab={activeTab} onTabPress={setActiveTab} />
+      {!keyboardVisible&&<FloatingAppBar activeTab={activeTab} onTabPress={setActiveTab} driver={activeRole==='driver'} />}
     </View>
   );
 }

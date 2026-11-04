@@ -2,18 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking } from 'react-native';
 import * as Location from 'expo-location';
 import type { MapCoordinate } from '../components/maps/mapGeometry';
+import { getPreciseLocation } from '../services/preciseLocation';
 
 export function useMyLocation() {
   const [locating, setLocating] = useState(false);
-  const [locationFocus, setLocationFocus] = useState<{ coordinate: MapCoordinate; requestId: number }>();
+  const [locationFocus, setLocationFocus] = useState<{ coordinate: MapCoordinate; requestId: number; accuracy: number | null }>();
+  const request = useRef<AbortController | null>(null);
   const mounted = useRef(true);
   const pending = useRef(false);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current?.abort(); }; }, []);
   const locate = async () => {
     if (pending.current) return;
     pending.current = true;
     setLocating(true);
-    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       const permission = await Location.requestForegroundPermissionsAsync();
       if (!mounted.current) return;
@@ -27,15 +28,17 @@ export function useMyLocation() {
         Alert.alert('Location is turned off', 'Turn on location services on your phone, then tap My location again.');
         return;
       }
-      const location = await Promise.race([
-        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-        new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), 18000); }),
-      ]);
-      if (mounted.current) setLocationFocus({ coordinate: { latitude: location.coords.latitude, longitude: location.coords.longitude }, requestId: Date.now() });
+      if (!mounted.current) return;
+      request.current = new AbortController();
+      const location = await getPreciseLocation(request.current.signal);
+      if (mounted.current) {
+        const focus = { coordinate: { latitude: location.coords.latitude, longitude: location.coords.longitude }, requestId: Date.now(), accuracy: location.coords.accuracy };
+        setLocationFocus(focus);
+        return focus;
+      }
     } catch {
-      if (mounted.current) Alert.alert('Could not find your location', 'Check your GPS signal and try again. You can still move the map manually.');
+      if (mounted.current) Alert.alert('Location unavailable', 'Your phone has not returned a location yet. Try again or choose your pickup on the map.');
     } finally {
-      if (timer) clearTimeout(timer);
       pending.current = false;
       if (mounted.current) setLocating(false);
     }

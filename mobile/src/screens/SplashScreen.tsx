@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
-import { Image, StyleSheet, View } from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '../hooks/useAppTheme';

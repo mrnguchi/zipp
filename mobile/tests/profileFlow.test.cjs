@@ -11,13 +11,13 @@ const { profileSections, faqItems, validateProfile, validatePassword, validateSu
 
 test('profile contains Account and Support with the requested order and real destinations', () => {
   assert.deepEqual(Array.from(profileSections, section => section.title), ['Account', 'Support']);
-  assert.deepEqual(Array.from(profileSections[0].rows, row => row.label), ['Manage Profile', 'Password & Security', 'Notifications', 'Language']);
+  assert.deepEqual(Array.from(profileSections[0].rows, row => row.label), ['Manage Profile', 'Password & Security', 'Notifications', 'Language', 'Refer & earn']);
   assert.deepEqual(Array.from(profileSections[1].rows, row => row.label), ['FAQ', 'Contact Support', 'About Us']);
   const navigator = fs.readFileSync(path.join(__dirname, '../src/navigation/RootNavigator.tsx'), 'utf8');
   const details = fs.readFileSync(path.join(__dirname, '../src/screens/profile/ProfileDetailScreen.tsx'), 'utf8');
   for (const section of profileSections) for (const row of section.rows) {
     assert.ok(navigator.includes(`'${row.screen}'`), `${row.label} has a stack destination`);
-    if (row.screen !== 'AboutUs') assert.ok(details.includes(`case '${row.screen}'`));
+    if (row.screen !== 'AboutUs' && row.screen !== 'ReferAndEarn') assert.ok(details.includes(`case '${row.screen}'`));
   }
   assert.equal(new Set(faqItems.map(item => item.id)).size, faqItems.length);
   for (const item of faqItems) assert.ok(item.answer.length > 30);

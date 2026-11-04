@@ -17,7 +17,7 @@ export function useRoadRoute(pickup?: MapCoordinate, destination?: MapCoordinate
     const debounce = setTimeout(async () => {
       timeout = setTimeout(() => controller.abort(), 15000);
       try {
-        const route = await fetchRoadRoute(pickup, destination, controller.signal);
+        const route = await fetchRoadRoute(pickup, destination, controller.signal, attempt > 0);
         if (active) setState({ key, status: 'ready', route });
       } catch {
         if (active) setState({ key, status: 'error' });

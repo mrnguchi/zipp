@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef } from 'react';
 import type { PropsWithChildren } from 'react';
-import { AppState } from 'react-native';
+import {AppState} from 'react-native';
 import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import type { NotificationSound } from '../services/notificationSounds';
 

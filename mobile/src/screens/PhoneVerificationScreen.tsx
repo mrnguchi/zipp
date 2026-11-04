@@ -1,22 +1,12 @@
+import {KeyboardAwareScrollView as ScrollView} from '../components/KeyboardAwareScrollView';
+import {LocalizedPressable as Pressable, LocalizedTextInput as TextInput} from '../components/LocalizedNative';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
 import { useRef, useState } from 'react';
-import {
-  Alert,
-  Image,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TextInputInstance,
-  View,
-} from 'react-native';
+import {Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInputInstance, View, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
@@ -50,11 +40,6 @@ export function PhoneVerificationScreen() {
     setError('');
     // Preserve a known profile only for the same phone; the real login API will supply it later.
     setProfile(purpose === 'signup' ? { phone, name: route.params.name } : profile?.phone === phone ? profile : { phone });
-    Alert.alert(
-      purpose === 'signup'
-        ? t('verification.signupComplete')
-        : t('verification.loginComplete'),
-    );
     if (purpose === 'signup') {
       navigation.replace('SelectRole');
     } else {
@@ -67,7 +52,7 @@ export function PhoneVerificationScreen() {
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.content}
@@ -80,7 +65,7 @@ export function PhoneVerificationScreen() {
             onPress={() => navigation.goBack()}
             style={styles.back}
           >
-            <Text style={[styles.backLabel, { color: colors.dark }]}>
+            <Text translate style={[styles.backLabel, { color: colors.dark }]}>
               {t('common.back')}
             </Text>
           </Pressable>
@@ -102,13 +87,13 @@ export function PhoneVerificationScreen() {
           </View>
 
           <View style={styles.intro}>
-            <Text style={[styles.heading, { color: colors.secondaryText }]}>
+            <Text translate style={[styles.heading, { color: colors.secondaryText }]}>
               {t('verification.title')}
             </Text>
-            <Text style={[styles.subtitle, { color: colors.mutedText }]}>
+            <Text translate style={[styles.subtitle, { color: colors.mutedText }]}>
               {t('verification.subtitle')}
             </Text>
-            <Text style={[styles.phone, { color: colors.dark }]}>{phone}</Text>
+            <Text translate style={[styles.phone, { color: colors.dark }]}>{phone}</Text>
           </View>
 
           <Pressable
@@ -129,7 +114,7 @@ export function PhoneVerificationScreen() {
                   },
                 ]}
               >
-                <Text style={[styles.codeDigit, { color: colors.dark }]}>
+                <Text translate style={[styles.codeDigit, { color: colors.dark }]}>
                   {code[index] ?? ''}
                 </Text>
               </View>
@@ -149,12 +134,12 @@ export function PhoneVerificationScreen() {
             />
           </Pressable>
 
-          <Text style={[styles.notice, { color: colors.mutedText }]}>
+          <Text translate style={[styles.notice, { color: colors.mutedText }]}>
             {t('verification.smsNotice')}
           </Text>
 
           {error ? (
-            <Text accessibilityRole="alert" style={[styles.error, { color: colors.error }]}>
+            <Text translate accessibilityRole="alert" style={[styles.error, { color: colors.error }]}>
               {error}
             </Text>
           ) : null}
@@ -172,7 +157,7 @@ export function PhoneVerificationScreen() {
               onPress={() => Alert.alert(t('verification.resendUnavailable'))}
               style={styles.resend}
             >
-              <Text style={[styles.resendText, { color: colors.primary }]}>
+              <Text translate style={[styles.resendText, { color: colors.primary }]}>
                 {t('verification.resend')}
               </Text>
             </Pressable>
@@ -254,7 +239,7 @@ const styles = StyleSheet.create({
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+
     borderRadius: 13,
   },
   codeDigit: {

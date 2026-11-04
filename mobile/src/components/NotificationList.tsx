@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import {ScrollView, StyleSheet, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText as Text } from './AppText';
 import { colors } from '../constants/colors';
@@ -6,7 +6,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 export function NotificationList() {
   const { notices } = useNotifications();
   return <ScrollView style={styles.list} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-    {notices.length ? notices.map(notice => <View key={notice.id} style={styles.card}><View style={styles.icon}><Ionicons name={notice.kind === 'wallet' ? 'wallet-outline' : 'notifications-outline'} size={21} color={colors.primary} /></View><View style={styles.copy}><Text style={styles.title}>{notice.title}</Text><Text style={styles.body}>{notice.body}</Text><Text style={styles.time}>{new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Douala', hour: '2-digit', minute: '2-digit' }).format(new Date(notice.time))}</Text></View></View>) : <View style={styles.empty}><Ionicons name="notifications-outline" size={30} color={colors.primary} /><Text style={styles.title}>You’re all caught up</Text><Text style={styles.body}>Your ride and wallet updates appear here.</Text></View>}
+    {notices.length ? notices.map(notice => <View key={notice.id} style={styles.card}><View style={styles.icon}><Ionicons name={notice.kind === 'wallet' ? 'wallet-outline' : 'notifications-outline'} size={21} color={colors.primary} /></View><View style={styles.copy}><Text translate style={styles.title}>{notice.title}</Text><Text translate style={styles.body}>{notice.body}</Text><Text translate style={styles.time}>{new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Douala', hour: '2-digit', minute: '2-digit' }).format(new Date(notice.time))}</Text></View></View>) : <View style={styles.empty}><Ionicons name="notifications-outline" size={30} color={colors.primary} /><Text translate style={styles.title}>You’re all caught up</Text><Text translate style={styles.body}>Your ride and wallet updates appear here.</Text></View>}
   </ScrollView>;
 }
 const styles = StyleSheet.create({

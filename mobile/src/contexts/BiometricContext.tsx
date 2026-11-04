@@ -1,6 +1,7 @@
+import {AppText as Text} from '../components/AppText';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import type { PropsWithChildren } from 'react';
-import { AppState, Modal, Platform, StyleSheet, Text, View } from 'react-native';
+import {AppState, Modal, Platform, StyleSheet, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import Constants from 'expo-constants';
@@ -52,7 +53,7 @@ export function BiometricProvider({ children }: PropsWithChildren) {
   const test = useCallback(async () => { if (await authenticate('Unlock Zipp', true)) setLocked(false); }, [authenticate]);
   return <Context.Provider value={{ ...capability, enabled, busy, error, refresh, setEnabled, test }}>{children}
     <Modal visible={enabled && locked} animationType="none" onRequestClose={() => {}} statusBarTranslucent>
-      <View style={styles.lock}><Ionicons name="lock-closed-outline" size={46} color="#121B26" /><Text style={styles.title}>Zipp is locked</Text><Text style={styles.body}>Use your fingerprint, face, or device passcode to continue.</Text>{!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}<View style={{ alignSelf: 'stretch' }}><ActionButton accessibilityLabel="Unlock Zipp" disabled={busy} onPress={() => { void test(); }}>{busy ? 'Verifying…' : 'Unlock Zipp'}</ActionButton></View></View>
+      <View style={styles.lock}><Ionicons name="lock-closed-outline" size={46} color="#121B26" /><Text translate style={styles.title}>Zipp is locked</Text><Text translate style={styles.body}>Use your fingerprint, face, or device passcode to continue.</Text>{!!error && <Text translate accessibilityRole="alert" style={styles.error}>{error}</Text>}<View style={{ alignSelf: 'stretch' }}><ActionButton accessibilityLabel="Unlock Zipp" disabled={busy} onPress={() => { void test(); }}>{busy ? 'Verifying…' : 'Unlock Zipp'}</ActionButton></View></View>
     </Modal>
   </Context.Provider>;
 }
