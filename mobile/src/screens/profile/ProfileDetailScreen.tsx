@@ -1,3 +1,4 @@
+import { inputStyles } from '../../constants/inputStyles';
 import { useState } from 'react';
 import type { PropsWithChildren } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -157,7 +158,7 @@ const s=StyleSheet.create({
   screen:{flex:1,backgroundColor:'#F7F7F7'},flex:{flex:1},
   header:{height:64,flexDirection:'row',alignItems:'center',justifyContent:'space-between',backgroundColor:'#FFFFFF',paddingHorizontal:12},back:{width:44,height:44,alignItems:'center',justifyContent:'center'},headerTitle:{flex:1,fontSize:19,fontWeight:'600',textAlign:'center',color:'#292D2C'},
   content:{padding:20,gap:20,flexGrow:1,paddingBottom:36},intro:{fontSize:16,lineHeight:25,color:'#777D76'},card:{backgroundColor:'#FFFFFF',padding:18,borderRadius:12,gap:18},group:{backgroundColor:'#FFFFFF',borderRadius:12,paddingHorizontal:16},row:{minHeight:60,flexDirection:'row',alignItems:'center',gap:14,paddingVertical:16},rowTitle:{fontSize:16,fontWeight:'500',color:'#292D2C'},divider:{borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#EFF0ED'},
-  heading:{fontSize:23,fontWeight:'600',color:'#292D2C',lineHeight:31},body:{fontSize:15,lineHeight:24,color:'#50564F'},small:{fontSize:13,lineHeight:20,color:'#8C928A'},sectionTitle:{fontSize:16,fontWeight:'500',color:colors.primaryDark},field:{gap:9},label:{fontSize:14,fontWeight:'500',color:'#727970'},input:{minHeight:50,borderWidth:1,borderColor:'#E9EBE6',borderRadius:9,paddingHorizontal:14,paddingVertical:12,color:'#292D2C',fontSize:16,backgroundColor:'#FFFFFF'},multiline:{minHeight:150,textAlignVertical:'top'},
+  heading:{fontSize:23,fontWeight:'600',color:'#292D2C',lineHeight:31},body:{fontSize:15,lineHeight:24,color:'#50564F'},small:{fontSize:13,lineHeight:20,color:'#8C928A'},sectionTitle:{fontSize:16,fontWeight:'500',color:colors.primaryDark},field:{gap:9},label:{fontSize:14,fontWeight:'500',color:'#727970'},input:{ ...inputStyles.field },multiline:{minHeight:150,textAlignVertical:'top'},
   error:{color:'#B42318',fontSize:14,lineHeight:21},avatar:{alignItems:'center',paddingVertical:8},toggleRow:{minHeight:90,flexDirection:'row',alignItems:'center',gap:16,paddingVertical:18},
   success:{flex:1,justifyContent:'center',gap:22,paddingVertical:32},successIcon:{alignSelf:'center',width:80,height:80,borderRadius:40,backgroundColor:colors.iconBackground,alignItems:'center',justifyContent:'center'},chips:{flexDirection:'row',flexWrap:'wrap',gap:10},chip:{borderWidth:1,borderColor:'#E1E4DE',borderRadius:20,paddingHorizontal:17,paddingVertical:10,backgroundColor:'#FFFFFF'},selectedChip:{backgroundColor:colors.primary,borderColor:colors.primary},chipText:{fontSize:14,color:'#50564F'},aboutLogo:{alignItems:'center',paddingVertical:24,gap:6},brand:{width:180,height:180*725/2170},
 });

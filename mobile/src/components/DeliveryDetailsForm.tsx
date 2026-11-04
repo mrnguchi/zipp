@@ -1,3 +1,4 @@
+import { inputStyles } from '../constants/inputStyles';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText as Text } from './AppText';
@@ -17,5 +18,5 @@ function Field({ label, value, onChange, phone = false, placeholder, multiline =
 }
 const styles = StyleSheet.create({
   roleHint: { fontSize: 11, lineHeight: 18, fontWeight: '500', color: colors.secondaryText, marginTop: -5, marginBottom: 12 },
-  content: { gap: 22 }, heading: { fontSize: 16, fontWeight: '600', color: colors.navy, marginBottom: 12 }, card: { backgroundColor: colors.input, borderRadius: 22, padding: 16, gap: 16 }, field: { gap: 7 }, label: { fontSize: 11, fontWeight: '500', color: colors.secondaryText }, input: { minHeight: 50, backgroundColor: colors.white, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, fontFamily: 'Poppins_500Medium', color: colors.navy }, multiline: { minHeight: 82, textAlignVertical: 'top' }, sizes: { flexDirection: 'row', gap: 8 }, size: { flex: 1, minHeight: 72, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: colors.white, borderRadius: 15 }, selected: { backgroundColor: colors.yellow }, sizeText: { fontSize: 11, fontWeight: '500', color: colors.navy },
+  content: { gap: 22 }, heading: { fontSize: 16, fontWeight: '600', color: colors.navy, marginBottom: 12 }, card: { backgroundColor: colors.input, borderRadius: 22, padding: 16, gap: 16 }, field: { gap: 7 }, label: { fontSize: 11, fontWeight: '500', color: colors.secondaryText }, input: { ...inputStyles.field }, multiline: { minHeight: 82, textAlignVertical: 'top' }, sizes: { flexDirection: 'row', gap: 8 }, size: { flex: 1, minHeight: 72, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: colors.white, borderRadius: 15 }, selected: { backgroundColor: colors.yellow }, sizeText: { fontSize: 11, fontWeight: '500', color: colors.navy },
 });

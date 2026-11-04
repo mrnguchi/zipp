@@ -35,7 +35,7 @@ export function MessagesScreen({ bottomInset }: { bottomInset: number }) {
       </View>
     </View>
     {searchOpen && <View style={s.searchControls}>
-      <View style={ui.search}><Ionicons name="search" size={20} color="#92998D" /><TextInput autoFocus accessibilityLabel={tab === 'messages' ? 'Search conversations' : 'Search calls'} placeholder={tab === 'messages' ? 'Search messages or people' : 'Search calls'} value={query} onChangeText={setQuery} style={[ui.searchInput, { fontSize: 17, lineHeight: 24 }]} placeholderTextColor="#92998D" /></View>
+      <View style={ui.search}><Ionicons name="search" size={20} color="#92998D" /><TextInput autoFocus accessibilityLabel={tab === 'messages' ? 'Search conversations' : 'Search calls'} placeholder={tab === 'messages' ? 'Search messages or people' : 'Search calls'} value={query} onChangeText={setQuery} style={ui.searchInput} placeholderTextColor="#92998D" /></View>
       <View style={s.filters}>{[false, true].map(value => <Pressable key={String(value)} accessibilityRole="button" accessibilityState={{ selected: filtered === value }} onPress={() => setFiltered(value)} style={[s.filter, filtered === value && s.filterActive]}><Text style={[s.filterText, filtered === value && { color: colors.primaryDark }]}>{value ? (tab === 'messages' ? 'Unread' : 'Missed') : 'All'}</Text></Pressable>)}</View>
     </View>}
     <ScrollView contentContainerStyle={[s.list, { paddingBottom: bottomInset + 86 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>

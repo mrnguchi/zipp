@@ -124,8 +124,6 @@ export function PhoneVerificationScreen() {
                   styles.codeCell,
                   {
                     backgroundColor: colors.input,
-                    borderColor:
-                      index === code.length ? colors.primary : colors.border,
                   },
                 ]}
               >
@@ -254,8 +252,8 @@ const styles = StyleSheet.create({
     height: 54,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderRadius: 13,
+    borderWidth: 0,
+    borderRadius: 25,
   },
   codeDigit: {
     fontSize: 20,

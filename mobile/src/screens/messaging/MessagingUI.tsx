@@ -1,3 +1,4 @@
+import { inputStyles } from '../../constants/inputStyles';
 import type { ComponentProps, PropsWithChildren } from 'react';
 import { MessagingIcon as Ionicons } from '../../components/MessagingIcon';
 import { useNavigation } from '@react-navigation/native';
@@ -38,7 +39,7 @@ export function dateLabel(time:number) { const now=new Date();const date=new Dat
 export const ui=StyleSheet.create({
   screen:{flex:1,backgroundColor:'#FFFFFF'},flex:{flex:1},header:{height:72,paddingHorizontal:18,flexDirection:'row',alignItems:'center',gap:10,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#F0F1EE'},headerTitle:{flex:1,fontSize:19,fontWeight:'600',color:colors.navy,textAlign:'center'},headerRight:{width:44,alignItems:'center'},iconButton:{width:44,height:44,borderRadius:22,backgroundColor:colors.iconBackground,alignItems:'center',justifyContent:'center'},
   content:{padding:20,gap:22,paddingBottom:36},body:{fontSize:14,lineHeight:22,color:'#6F776E'},small:{fontSize:12,lineHeight:19,color:'#92998D'},medium:{fontSize:15,lineHeight:23,fontWeight:'600',color:colors.navy},heading:{fontSize:24,fontWeight:'700',color:colors.navy},label:{fontSize:13,fontWeight:'600',color:colors.primaryDark},
-  search:{flexDirection:'row',alignItems:'center',gap:10,backgroundColor:colors.iconBackground,borderRadius:15,paddingHorizontal:14,minHeight:48},searchInput:{flex:1,fontSize:15,color:colors.navy,paddingVertical:12},notice:{flexDirection:'row',alignItems:'center',gap:8,padding:12,backgroundColor:colors.yellow+'1B',borderRadius:12},noticeText:{flex:1,fontSize:12,lineHeight:19,color:'#797451'},
+  search:{ ...inputStyles.container, flexDirection:'row', alignItems:'center', gap:10 },searchInput:{ ...inputStyles.text, flex:1 },notice:{flexDirection:'row',alignItems:'center',gap:8,padding:12,backgroundColor:colors.yellow+'1B',borderRadius:12},noticeText:{flex:1,fontSize:12,lineHeight:19,color:'#797451'},
   row:{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:18},rowCopy:{flex:1,gap:4},rowTitle:{fontSize:16,fontWeight:'600',color:colors.navy},divider:{borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#EEF1EB'},card:{borderRadius:18,backgroundColor:colors.iconBackground,padding:18,gap:14},tripCard:{backgroundColor:'#F4F4F4',padding:16,borderRadius:20,gap:12,borderWidth:StyleSheet.hairlineWidth,borderColor:'#E5E5E5'},
   // Match the photo content width. Flex-only text rows have no intrinsic width
   // inside a shrink-wrapped chat bubble and can otherwise collapse to a column.

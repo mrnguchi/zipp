@@ -1,3 +1,5 @@
+import { PasswordInput } from '../components/PasswordInput';
+import { inputStyles } from '../constants/inputStyles';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -31,7 +33,6 @@ export function LoginScreen() {
   const illustrationHeight = Math.min(300, Math.max(190, height * 0.28));
   const [phone, setPhone] = useState(__DEV__ ? '612345678' : '');
   const [password, setPassword] = useState(__DEV__ ? 'ZippDev123!' : '');
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState('');
 
   const submitLogin = () => {
@@ -121,37 +122,18 @@ export function LoginScreen() {
               <Text style={[styles.label, { color: colors.secondaryText }]}>
                 {t('login.password')}
               </Text>
-              <View style={[styles.passwordInput, { backgroundColor: colors.input }]}>
-                <TextInput
-                  accessibilityLabel={t('login.password')}
-                  autoComplete="current-password"
-                  onChangeText={(value) => {
+              <PasswordInput
+                    accessibilityLabel={t('login.password')}
+                    autoComplete="current-password"
+                    onChangeText={(value) => {
                     setPassword(value);
                     setError('');
                   }}
-                  placeholder={t('login.passwordPlaceholder')}
-                  placeholderTextColor={colors.mutedText}
-                  returnKeyType="done"
-                  secureTextEntry={!passwordVisible}
-                  style={[styles.passwordText, { color: colors.dark }]}
-                  value={password}
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    passwordVisible
-                      ? t('login.hidePassword')
-                      : t('login.showPassword')
-                  }
-                  onPress={() => setPasswordVisible((visible) => !visible)}
-                >
-                  <Text style={[styles.showPassword, { color: colors.secondaryText }]}>
-                    {passwordVisible
-                      ? t('login.hidePassword')
-                      : t('login.showPassword')}
-                  </Text>
-                </Pressable>
-              </View>
+                    placeholder={t('login.passwordPlaceholder')}
+                    placeholderTextColor={colors.mutedText}
+                    returnKeyType="done"
+                    value={password}
+                  />
             </View>
           </View>
 
@@ -247,27 +229,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  input: {
-    minHeight: 50,
-    borderRadius: 25,
-    paddingHorizontal: 16,
-    fontSize: 14,
-    fontFamily: theme.typography.regular,
-  },
-  passwordInput: {
-    minHeight: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 25,
-    paddingLeft: 16,
-    paddingRight: 14,
-  },
-  passwordText: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    fontFamily: theme.typography.regular,
-  },
+  input: { ...inputStyles.field },
+  passwordInput: { ...inputStyles.container, flexDirection: 'row', alignItems: 'center' },
+  passwordText: { ...inputStyles.text, flex: 1 },
   showPassword: {
     fontSize: 12,
     fontWeight: '600',

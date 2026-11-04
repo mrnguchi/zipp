@@ -21,6 +21,7 @@ function harness(dev = true) {
   const source = ts.transpileModule(fs.readFileSync(require('node:path').join(__dirname, '../src/components/WalletTopUp.tsx'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   vm.runInNewContext(source, { exports, __DEV__: dev, setTimeout: (fn, delay) => { timers.set(++timerId, { fn, due: now + delay }); return timerId; }, clearTimeout: id => timers.delete(id), require(name) {
     if (name === 'react') return react;
+    if (name.includes('inputStyles')) return { inputStyles: { field: {}, container: {}, text: {} } };
     if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
     if (name === 'react-native') return { Animated: { Value: class { setValue() {} interpolate() {} }, View: 'AnimatedView', loop: () => ({ start() {}, stop() {} }), timing() {} }, Easing: { linear: null }, Keyboard: { dismiss() {} }, StyleSheet: { create: value => value, absoluteFill: {} }, ...Object.fromEntries(['Image', 'Modal', 'Pressable', 'ScrollView', 'TextInput', 'View'].map(key => [key, key])) };
     if (name.includes('WalletContext')) return { useWallet: () => ({ simulateDeposit }) };

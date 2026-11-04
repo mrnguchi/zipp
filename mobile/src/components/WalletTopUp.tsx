@@ -1,3 +1,4 @@
+import { inputStyles } from '../constants/inputStyles';
 ﻿import { useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { Ref } from 'react';
 import { Animated, Easing, Image, Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
   receiptCard: { alignSelf: 'stretch', padding: 20, backgroundColor: colors.input, borderRadius: 20, gap: 16 }, receiptRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 18 }, receiptValue: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '600', color: colors.navy },
   warningRoot: { flex: 1, justifyContent: 'center', padding: 24 }, warningBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(18,27,38,0.55)' }, warningCard: { backgroundColor: colors.white, borderRadius: 26, padding: 24, gap: 18 }, warningIcon: { width: 56, height: 56, borderRadius: 28, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' }, warningCopy: { fontSize: 13, lineHeight: 22, color: colors.secondaryText }, cancelButton: { alignItems: 'center', padding: 12 }, cancelText: { fontSize: 14, fontWeight: '600', color: colors.error },
   methodTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }, logo: { width: 54, height: 42, borderRadius: 8 }, methodName: { fontSize: 12, fontWeight: '600', color: colors.navy },
-  fieldGroup: { gap: 8 }, inputRow: { flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 16, paddingHorizontal: 16, backgroundColor: colors.input, minHeight: 58 },
-  input: { flex: 1, minWidth: 0, fontFamily: 'Poppins_500Medium', fontSize: 16, color: colors.navy, paddingVertical: 14 }, amountInput: { fontSize: 24, fontFamily: 'Poppins_600SemiBold' }, prefix: { fontSize: 14, fontWeight: '500', color: colors.secondaryText }, currency: { fontSize: 15, fontWeight: '600', color: colors.primary },
+  fieldGroup: { gap: 8 }, inputRow: { ...inputStyles.container, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  input: { ...inputStyles.text, flex: 1, minWidth: 0 }, amountInput: { fontSize: 24, fontFamily: 'Poppins_600SemiBold' }, prefix: { fontSize: 14, fontWeight: '500', color: colors.secondaryText }, currency: { fontSize: 15, fontWeight: '600', color: colors.primary },
   hint: { fontSize: 11, lineHeight: 18, color: colors.secondaryText }, footer: { paddingTop: 12 },
   processing: { flex: 1 }, processingBody: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 17 }, ring: { width: 74, height: 74, borderRadius: 37, borderWidth: 5, borderColor: colors.primarySoft, borderTopColor: colors.primary, borderRightColor: colors.primary },
   timeoutIcon: { width: 74, height: 74, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.primarySoft, borderRadius: 37 },

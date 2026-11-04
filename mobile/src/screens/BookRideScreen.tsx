@@ -1,3 +1,4 @@
+import { inputStyles } from '../constants/inputStyles';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentRef } from 'react';
 import { ActivityIndicator, Animated, Image, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
@@ -368,8 +369,8 @@ const styles = StyleSheet.create({
   mapCardHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
   mapSuggestionList: { maxHeight: 220, flexShrink: 1 },
   mapSuggestionContent: { gap: 8, paddingBottom: 4 },
-  mapLocationField: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: colors.input, paddingHorizontal: 14, borderRadius: 16 },
-  mapLocationInput: { flex: 1, minHeight: 52, fontFamily: 'Poppins_500Medium', fontSize: 13, color: colors.navy, paddingVertical: 12 },
+  mapLocationField: { ...inputStyles.container, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  mapLocationInput: { ...inputStyles.text, flex: 1 },
   mapCardActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   saveLocationButton: { width: 56, height: 56, borderRadius: 20, backgroundColor: colors.input, alignItems: 'center', justifyContent: 'center' },
   savedLocationButton: { backgroundColor: colors.yellow },
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
   panel: { backgroundColor: colors.white, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: 20 },
   panelTitle: { flex: 1, fontSize: 20, fontWeight: '700', color: colors.navy },
   panelContent: { gap: 12 },
-  input: { fontFamily: 'Poppins_500Medium', fontSize: 14, color: colors.navy, backgroundColor: colors.input, padding: 16, borderRadius: 16 },
+  input: { ...inputStyles.field },
   searchStatus: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   optionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 15, borderRadius: 15, backgroundColor: colors.input },
   optionIcon: { width: 24, height: 24 },

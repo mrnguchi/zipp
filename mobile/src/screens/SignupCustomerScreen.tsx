@@ -1,3 +1,5 @@
+import { PasswordInput } from '../components/PasswordInput';
+import { inputStyles } from '../constants/inputStyles';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
@@ -32,7 +34,6 @@ export function SignupCustomerScreen() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState('');
 
   const createAccount = () => {
@@ -149,8 +150,7 @@ export function SignupCustomerScreen() {
                 <Text style={[styles.label, { color: colors.secondaryText }]}>
                   {t('signup.password')}
                 </Text>
-                <View style={[styles.passwordInput, { backgroundColor: colors.input }]}>
-                  <TextInput
+                <PasswordInput
                     accessibilityLabel={t('signup.password')}
                     autoComplete="new-password"
                     onChangeText={(value) => {
@@ -160,26 +160,8 @@ export function SignupCustomerScreen() {
                     placeholder={t('signup.passwordPlaceholder')}
                     placeholderTextColor={colors.mutedText}
                     returnKeyType="done"
-                    secureTextEntry={!passwordVisible}
-                    style={[styles.passwordText, { color: colors.dark }]}
                     value={password}
                   />
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      passwordVisible
-                        ? t('signup.hidePassword')
-                        : t('signup.showPassword')
-                    }
-                    onPress={() => setPasswordVisible((visible) => !visible)}
-                  >
-                    <Text style={[styles.showPassword, { color: colors.secondaryText }]}>
-                      {passwordVisible
-                        ? t('signup.hidePassword')
-                        : t('signup.showPassword')}
-                    </Text>
-                  </Pressable>
-                </View>
               </View>
             </View>
 
@@ -279,27 +261,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  input: {
-    minHeight: 50,
-    borderRadius: 22,
-    paddingHorizontal: 15,
-    fontSize: 13,
-    fontFamily: theme.typography.regular,
-  },
-  passwordInput: {
-    minHeight: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 22,
-    paddingLeft: 15,
-    paddingRight: 13,
-  },
-  passwordText: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 13,
-    fontFamily: theme.typography.regular,
-  },
+  input: { ...inputStyles.field },
+  passwordInput: { ...inputStyles.container, flexDirection: 'row', alignItems: 'center' },
+  passwordText: { ...inputStyles.text, flex: 1 },
   showPassword: {
     fontSize: 11,
     fontWeight: '600',
