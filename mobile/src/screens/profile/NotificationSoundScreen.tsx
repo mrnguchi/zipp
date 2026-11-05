@@ -3,7 +3,7 @@ import { AppText as Text } from '../../components/AppText';
 import { useState } from 'react';
 import { useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import { ProfileIcon as Ionicons } from '../../components/ProfileIcon';
 import {StyleSheet, View} from 'react-native';
 import { useNotificationAudio } from '../../contexts/NotificationAudioContext';
 import { useProfileSettings } from '../../contexts/ProfileSettingsContext';
@@ -32,4 +32,4 @@ export function NotificationSoundScreen() {
     <Text translate style={s.body}>Your phone’s volume and silent mode still apply. Sound choices last for this app session.</Text>
   </ProfileFrame>;
 }
-const s=StyleSheet.create({heading:{fontSize:22,fontWeight:'600',color:'#292D2C'},body:{fontSize:14,lineHeight:23,color:'#777D76'},card:{borderRadius:12,backgroundColor:'#FFFFFF',paddingHorizontal:16},row:{flexDirection:'row',alignItems:'center',minHeight:64},option:{flex:1,flexDirection:'row',alignItems:'center',gap:12,paddingVertical:18},label:{flex:1,fontSize:16,color:'#292D2C'},divider:{borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#EFF0ED'},preview:{width:44,height:44,alignItems:'center',justifyContent:'center',marginLeft:10,borderRadius:22,backgroundColor:colors.yellow+'24'},error:{color:'#B42318',fontSize:14,lineHeight:21}});
+const s=StyleSheet.create({heading:{fontSize:22,fontWeight:'600',color:'#292D2C'},body:{fontSize:14,lineHeight:23,color:'#777D76'},card:{paddingHorizontal:16,backgroundColor:colors.input,borderRadius:18},row:{flexDirection:'row',alignItems:'center',minHeight:64},option:{flex:1,flexDirection:'row',alignItems:'center',gap:12,paddingVertical:18},label:{flex:1,fontSize:16,color:'#292D2C'},divider:{borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:colors.border},preview:{width:44,height:44,alignItems:'center',justifyContent:'center',marginLeft:10,borderRadius:22,backgroundColor:colors.yellow+'24'},error:{color:'#B42318',fontSize:14,lineHeight:21}});

@@ -19,7 +19,6 @@ export type RootStackParamList = {
   DriverTripHistory: undefined;
   DriverTripReceipt: {id:string};
   DriverPayout: {amount?:number;phone?:string;provider?:'MTN MoMo'|'Orange Money'}|undefined;
-  DriverPayoutReview: {amount:number;phone:string;provider:'MTN MoMo'|'Orange Money'};
   DriverPayoutStatus: {id:string};
   DriverVehicleHub: undefined;
   DriverDocumentsHub: undefined;
@@ -31,6 +30,10 @@ export type RootStackParamList = {
   Welcome: undefined;
   SignupCustomer: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
+  ResetPasswordCode: undefined;
+  ResetPasswordNew: undefined;
+  ResetPasswordSuccess: undefined;
   PhoneVerification: {
     phone: string;
     purpose: 'signup' | 'login';

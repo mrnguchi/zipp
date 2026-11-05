@@ -75,7 +75,7 @@ export function RoleHomeScreen({ contentBottomInset = 24, onOpenActivity }: Prop
         <Pressable accessibilityRole="button" accessibilityLabel="Notifications" onPress={() => setPanel('notifications')} style={styles.notificationButton}><Ionicons name="notifications" size={27} color={colors.navy} /></Pressable>
       </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Where to? Book a ride" onPress={bookRide} style={({ pressed }) => [styles.search, pressed && styles.pressed]}>
-          <Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.locationIcon} /><Text translate style={styles.searchText}>Where to?</Text>
+          <Image source={require('../../assets/location.png')} resizeMode="contain" style={styles.locationIcon} /><Text translate style={styles.searchText}>Where to?</Text><Ionicons name="chevron-forward" size={22} color={colors.primary} />
         </Pressable>
       </View>
       <Animated.View pointerEvents={sheet.expanded ? 'none' : 'box-none'} style={[styles.mapButtons, { bottom: sheet.expandedHeight + 34, transform: [{ translateY: sheet.translateY }], opacity: sheet.translateY.interpolate({ inputRange: [0, Math.max(1, sheet.travel * 0.7), Math.max(2, sheet.travel)], outputRange: [0, 0, 1], extrapolate: 'clamp' }) }]}>
@@ -151,9 +151,9 @@ const styles = StyleSheet.create({
   notificationButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.input, alignItems: 'center', justifyContent: 'center' },
   roundButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.input, alignItems: 'center', justifyContent: 'center' },
   mapSection: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: '#F5F5F5' },
-  search: { minHeight: 62, borderRadius: 18, backgroundColor: colors.white, paddingHorizontal: 18, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: colors.navy, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 4 },
+  search: { minHeight: 62, borderRadius: 31, backgroundColor: colors.white, paddingHorizontal: 18, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', gap: 12, shadowColor: colors.navy, shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.1, shadowRadius: 14, elevation: 4 },
   locationIcon: { width: 27, height: 27 },
-  searchText: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.navy },
+  searchText: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.secondaryText },
   smallText: { fontSize: 11, lineHeight: 18, fontWeight: '500', color: colors.secondaryText },
   mapButtons: { position: 'absolute', right: 24, gap: 10 },
   homeSheet: { position: 'absolute', bottom: 0, left: 0, right: 0, borderTopLeftRadius: 32, borderTopRightRadius: 32, backgroundColor: colors.white, shadowColor: colors.navy, shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.08, shadowRadius: 14, elevation: 6 },

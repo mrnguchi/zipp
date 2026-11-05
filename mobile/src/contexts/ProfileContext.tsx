@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { PropsWithChildren } from 'react';
 
-export type Profile = { phone: string; name?: string; firstName?: string; username?: string; email?: string;demoDriver?:'vehicle'|'bike' };
+export type Profile = { phone: string; name?: string; firstName?: string; username?: string; email?: string;photoUri?:string;demoDriver?:'vehicle'|'bike' };
 type ProfileContextValue = { profile: Profile | null; setProfile: (profile: Profile | null) => void; sessionRevision: number; logout: () => void;startSession:(profile:Profile)=>void };
 const ProfileContext = createContext<ProfileContextValue | undefined>(undefined);
 

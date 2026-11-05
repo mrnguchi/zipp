@@ -13,6 +13,7 @@ type Settings = {
   supportDraft: SupportDraft;
   setSupportDraft: (draft: SupportDraft) => void;
   changePreviewPassword: (current: string, next: string) => boolean;
+  resetPreviewPassword: (next: string) => void;
 };
 const Context = createContext<Settings | null>(null);
 export function ProfileSettingsProvider({ children }: PropsWithChildren) {
@@ -25,7 +26,8 @@ export function ProfileSettingsProvider({ children }: PropsWithChildren) {
     setPreviewPassword(next);
     return true;
   }, [previewPassword]);
-  return <Context.Provider value={{ notifications, setNotifications, sounds, setSounds, supportDraft, setSupportDraft, changePreviewPassword }}>{children}</Context.Provider>;
+  const resetPreviewPassword = useCallback((next:string) => { if(__DEV__ && next.length>=8 && next.length<=128)setPreviewPassword(next); }, []);
+  return <Context.Provider value={{ notifications, setNotifications, sounds, setSounds, supportDraft, setSupportDraft, changePreviewPassword, resetPreviewPassword }}>{children}</Context.Provider>;
 }
 export function useProfileSettings() {
   const settings = useContext(Context);

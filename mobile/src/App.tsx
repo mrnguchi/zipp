@@ -24,6 +24,7 @@ import { WalletProvider } from './contexts/WalletContext';
 import { MessagingProvider } from './contexts/MessagingContext';
 import { ActivityProvider } from './contexts/ActivityContext';
 import { SavedPlacesProvider } from './contexts/SavedPlacesContext';
+import { PasswordRecoveryProvider } from './contexts/PasswordRecoveryContext';
 import {languageReady} from './i18n';
 import {useEffect,useState} from 'react';
 import { RootNavigator } from './navigation/RootNavigator';
@@ -75,9 +76,11 @@ function SessionProviders() {
           <MessagingProvider>
           <DriverWorkspaceProvider>
           <DriverMoneyProvider>
+          <PasswordRecoveryProvider>
           <NavigationContainer>
             <RootNavigator initialRouteName={__DEV__&&profile?.demoDriver?'RoleHome':sessionRevision > 0 ? 'Login' : 'Splash'} />
           </NavigationContainer>
+          </PasswordRecoveryProvider>
           </DriverMoneyProvider>
           </DriverWorkspaceProvider>
           </MessagingProvider>

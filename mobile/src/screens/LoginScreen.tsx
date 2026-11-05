@@ -143,6 +143,7 @@ export function LoginScreen() {
           ) : null}
 
           <View style={styles.footer}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Forgot password?" onPress={() => navigation.navigate('ForgotPassword')} style={{alignSelf:'flex-end',minHeight:44,justifyContent:'center'}}><Text translate style={{fontSize:13,fontWeight:'600',color:colors.primary}}>Forgot password?</Text></Pressable>
             <ActionButton
               accessibilityLabel={t('login.submit')}
               onPress={submitLogin}

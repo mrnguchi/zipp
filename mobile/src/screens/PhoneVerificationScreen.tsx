@@ -1,12 +1,13 @@
 import {KeyboardAwareScrollView as ScrollView} from '../components/KeyboardAwareScrollView';
-import {LocalizedPressable as Pressable, LocalizedTextInput as TextInput} from '../components/LocalizedNative';
+import {LocalizedPressable as Pressable} from '../components/LocalizedNative';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { OtpInput } from '../components/OtpInput';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useTranslation } from 'react-i18next';
-import { useRef, useState } from 'react';
-import {Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, TextInputInstance, View, } from 'react-native';
+import { useState } from 'react';
+import {Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, View, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppText as Text } from '../components/AppText';
@@ -25,7 +26,6 @@ export function PhoneVerificationScreen() {
   const { profile, setProfile } = useProfile();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const codeInput = useRef<TextInputInstance>(null);
   const [code, setCode] = useState(__DEV__ ? '123456' : '');
   const [error, setError] = useState('');
 
@@ -96,41 +96,7 @@ export function PhoneVerificationScreen() {
             <Text translate style={[styles.phone, { color: colors.dark }]}>{phone}</Text>
           </View>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('verification.codeLabel')}
-            onPress={() => codeInput.current?.focus()}
-            style={styles.codeRow}
-          >
-            {Array.from({ length: 6 }, (_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.codeCell,
-                  {
-                    backgroundColor: colors.input,
-                  },
-                ]}
-              >
-                <Text translate style={[styles.codeDigit, { color: colors.dark }]}>
-                  {code[index] ?? ''}
-                </Text>
-              </View>
-            ))}
-            <TextInput
-              ref={codeInput}
-              accessibilityLabel={t('verification.codeLabel')}
-              autoComplete="one-time-code"
-              keyboardType="number-pad"
-              maxLength={6}
-              onChangeText={(value) => {
-                setCode(value.replace(/\D/g, '').slice(0, 6));
-                setError('');
-              }}
-              style={styles.hiddenCodeInput}
-              value={code}
-            />
-          </Pressable>
+          <OtpInput label={t('verification.codeLabel')} value={code} onChange={value=>{setCode(value);setError('');}} style={{marginTop:30}} onSubmit={verifyCode}/>
 
           <Text translate style={[styles.notice, { color: colors.mutedText }]}>
             {t('verification.smsNotice')}

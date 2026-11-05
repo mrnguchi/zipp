@@ -33,8 +33,8 @@ export function MessagesScreen({ bottomInset }: { bottomInset: number }) {
     <View style={s.header}>
       <Text translate accessibilityRole="header" style={s.heading}>{tab === 'messages' ? 'Messages' : 'Calls'}</Text>
       <View style={s.headerActions}>
-        <Pressable accessibilityRole="button" accessibilityLabel={tab === 'messages' ? 'Show calls' : 'Show messages'} onPress={changeTab} style={s.headerButton}><Ionicons name={tab === 'messages' ? 'call' : 'chatbubble'} size={24} color="#525C4C" /></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={searchOpen ? 'Close search' : 'Search'} onPress={() => { setSearchOpen(!searchOpen); setQuery(''); setFiltered(false); }} style={s.headerButton}><Ionicons name={searchOpen ? 'close-outline' : 'search-outline'} size={27} color="#525C4C" /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={tab === 'messages' ? 'Show calls' : 'Show messages'} onPress={changeTab} style={s.headerButton}><Ionicons name={tab === 'messages' ? 'call-outline' : 'chatbubble-outline'} size={21} color={colors.primary} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={searchOpen ? 'Close search' : 'Search'} accessibilityState={{ expanded: searchOpen }} onPress={() => { setSearchOpen(!searchOpen); setQuery(''); setFiltered(false); }} style={s.headerButton}><Ionicons name={searchOpen ? 'close-outline' : 'search-outline'} size={23} color={colors.navy} /></Pressable>
       </View>
     </View>
     {searchOpen && <View style={s.searchControls}>
@@ -45,7 +45,7 @@ export function MessagesScreen({ bottomInset }: { bottomInset: number }) {
       {tab === 'messages' ? items.length ? items.map(item => {
         const last = item.messages.at(-1);
         return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`${item.name}, ${item.unread} unread messages`} onPress={() => navigation.navigate('Conversation', { conversationId: item.id })} style={({ pressed }) => [s.conversation, pressed && { opacity: 0.6 }]}>
-          <Avatar conversation={item} size={64} />
+          <Avatar conversation={item} size={56} />
           <View style={s.copy}><Text  style={s.name} numberOfLines={1}>{item.name}</Text><Text  style={s.message} numberOfLines={2}>{messagePreview(last)}</Text></View>
           <View style={s.meta}><Text translate style={s.time}>{last ? relativeMessageTime(last.createdAt, now) : ''}</Text>{item.unread > 0 ? <View style={s.unread}><Text translate style={s.unreadText}>{item.unread}</Text></View> : item.muted ? <Ionicons name="notifications-off-outline" size={17} color="#ACB2A5" /> : null}</View>
         </Pressable>;
@@ -59,23 +59,22 @@ export function MessagesScreen({ bottomInset }: { bottomInset: number }) {
           <Pressable accessibilityRole="button" accessibilityLabel={`Call ${person.name}`} style={s.headerButton} onPress={() => navigation.navigate('Call', { conversationId: person.id, mode: 'voice' })}><Ionicons name="call-outline" size={23} color={colors.primary} /></Pressable>
         </View>;
       }) : <EmptyState icon="call-outline" title={filtered ? 'No missed calls' : 'No calls yet'} body="Your voice call history will appear here." />}
-      {__DEV__ && <Text translate style={s.previewFootnote}>Preview conversations · saved on this device</Text>}
     </ScrollView>
-    <Pressable accessibilityRole="button" accessibilityLabel={tab === 'messages' ? 'New conversation' : 'New call'} onPress={() => navigation.navigate('NewConversation', { mode: tab === 'messages' ? 'message' : 'voice' })} style={({ pressed }) => [s.compose, { bottom: bottomInset + 8 }, pressed && { opacity: 0.8 }]}><Ionicons name="add" size={31} color={colors.white} /></Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={tab === 'messages' ? 'New conversation' : 'New call'} onPress={() => navigation.navigate('NewConversation', { mode: tab === 'messages' ? 'message' : 'voice' })} style={({ pressed }) => [s.compose, { bottom: bottomInset + 8 }, pressed && { opacity: 0.8 }]}><Ionicons name="add" size={31} color={colors.yellow} /></Pressable>
   </SafeAreaView>;
 }
 const s = StyleSheet.create({
-  header: { paddingHorizontal: 26, paddingTop: 22, paddingBottom: 32, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  heading: { fontSize: 36, lineHeight: 46, fontWeight: '700', color: colors.navy },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 2 }, headerButton: { width: 40, height: 44, alignItems: 'center', justifyContent: 'center' },
+  header: { paddingHorizontal: 24, paddingTop: 14, paddingBottom: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  heading: { fontSize: 30, lineHeight: 40, fontWeight: '700', color: colors.navy },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 }, headerButton: { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.input, alignItems: 'center', justifyContent: 'center' },
   list: { paddingHorizontal: 26, flexGrow: 1, paddingTop: 2 },
-  conversation: { flexDirection: 'row', alignItems: 'center', gap: 17, minHeight: 119, paddingVertical: 22 },
-  copy: { flex: 1, gap: 9 }, name: { fontSize: 19, lineHeight: 26, fontWeight: '500', color: colors.navy },
-  message: { fontSize: 16, lineHeight: 25, color: colors.secondaryText },
+  conversation: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 104, paddingVertical: 18, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  copy: { flex: 1, gap: 5 }, name: { fontSize: 16, lineHeight: 24, fontWeight: '600', color: colors.navy },
+  message: { fontSize: 13, lineHeight: 21, color: colors.secondaryText },
   meta: { width: 54, alignItems: 'flex-end', alignSelf: 'stretch', paddingTop: 4, gap: 17 }, time: { fontSize: 12, lineHeight: 18, color: colors.secondaryText, textAlign: 'right' },
-  unread: { minWidth: 28, height: 28, paddingHorizontal: 7, borderRadius: 10, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' }, unreadText: { fontSize: 14, fontWeight: '600', color: colors.white },
+  unread: { minWidth: 23, height: 23, paddingHorizontal: 6, borderRadius: 12, backgroundColor: colors.yellow, alignItems: 'center', justifyContent: 'center' }, unreadText: { fontSize: 11, fontWeight: '600', color: colors.navy },
   compose: { position: 'absolute', right: 26, width: 62, height: 62, borderRadius: 31, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center', shadowColor: colors.primary, shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 7 },
-  searchControls: { paddingHorizontal: 26, gap: 12, paddingBottom: 12 }, filters: { flexDirection: 'row', gap: 9 }, filter: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20, backgroundColor: '#F6F7F4' }, filterActive: { backgroundColor: colors.primarySoft }, filterText: { fontSize: 14, fontWeight: '600', color: colors.secondaryText },
+  searchControls: { paddingHorizontal: 26, gap: 12, paddingBottom: 12 }, filters: { flexDirection: 'row', gap: 9 }, filter: { paddingHorizontal: 18, paddingVertical: 8, borderRadius: 20, backgroundColor: colors.input }, filterActive: { backgroundColor: colors.yellow }, filterText: { fontSize: 14, fontWeight: '600', color: colors.secondaryText },
   callRow: { flexDirection: 'row', alignItems: 'center', gap: 7, minHeight: 119, paddingVertical: 20 }, callDetails: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 17 }, callDescription: { flexDirection: 'row', alignItems: 'center', gap: 5 }, callTime: { fontSize: 13, lineHeight: 20, color: colors.secondaryText },
   previewFootnote: { fontSize: 11, lineHeight: 18, color: colors.secondaryText, textAlign: 'center', marginTop: 24 },
 });

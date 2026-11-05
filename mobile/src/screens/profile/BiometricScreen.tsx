@@ -1,6 +1,6 @@
 import { AppText as Text } from '../../components/AppText';
 import {StyleSheet, Switch, View} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ProfileIcon as Ionicons } from '../../components/ProfileIcon';
 import { useBiometricLock } from '../../contexts/BiometricContext';
 import { ProfileFrame } from './ProfileDetailScreen';
 import { colors } from '../../constants/colors';
@@ -19,4 +19,4 @@ export function BiometricScreen() {
     <View style={s.card}><Text translate style={s.label}>About passkeys</Text><Text translate style={s.body}>Passkeys can also use your fingerprint or face to sign in to an account. Zipp account passkey sign-in is not available yet. Device unlock protects this app session.</Text></View>
   </ProfileFrame>;
 }
-const s=StyleSheet.create({ biometricIcon:{width:84,height:84,borderRadius:42,backgroundColor:colors.yellow+'24',alignItems:'center',justifyContent:'center'}, hero:{alignItems:'center',gap:18,paddingVertical:20},title:{fontSize:23,lineHeight:31,fontWeight:'600',color:'#292D2C',textAlign:'center'},body:{fontSize:14,lineHeight:23,color:'#777D76'},card:{backgroundColor:'#FFFFFF',padding:18,borderRadius:12,gap:16},row:{flexDirection:'row',alignItems:'center',gap:16},label:{fontSize:16,fontWeight:'600',lineHeight:24,color:'#292D2C'},error:{fontSize:14,lineHeight:22,color:'#B42318'} });
+const s=StyleSheet.create({ biometricIcon:{width:84,height:84,borderRadius:42,alignItems:'center',justifyContent:'center',backgroundColor:colors.input}, hero:{alignItems:'center',gap:18,paddingVertical:20},title:{fontSize:23,lineHeight:31,fontWeight:'600',color:'#292D2C',textAlign:'center'},body:{fontSize:14,lineHeight:23,color:'#777D76'},card:{padding:18,gap:16,backgroundColor:colors.input,borderRadius:18},row:{flexDirection:'row',alignItems:'center',gap:16},label:{fontSize:16,fontWeight:'600',lineHeight:24,color:'#292D2C'},error:{fontSize:14,lineHeight:22,color:'#B42318'} });

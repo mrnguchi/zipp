@@ -1,5 +1,8 @@
+import {DriverWithdrawScreen} from '../screens/driver/DriverWithdrawScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {DriverScreen} from '../screens/driver/DriverScreens';
+import {DriverOfferScreen} from '../screens/driver/DriverOfferScreen';
+import {DriverRideScreen} from '../screens/driver/DriverRideScreen';
 
 import { DriverOnboardingScreen } from '../screens/signup/DriverOnboardingScreen';
 import { DriverSelfieCaptureScreen, DriverSelfieReviewScreen } from '../screens/signup/DriverSelfieScreen';
@@ -20,6 +23,7 @@ import { DeliveryScreen } from '../screens/DeliveryScreen';
 import { SavedPlacesScreen } from '../screens/SavedPlacesScreen';
 import { SelectRoleScreen } from '../screens/SelectRoleScreen';
 import { LoginScreen } from '../screens/LoginScreen';
+import { ForgotPasswordScreen, ResetPasswordCodeScreen, ResetPasswordNewScreen, ResetPasswordSuccessScreen } from '../screens/PasswordRecoveryScreens';
 import { PhoneVerificationScreen } from '../screens/PhoneVerificationScreen';
 import { SignupCustomerScreen } from '../screens/SignupCustomerScreen';
 import { SplashScreen } from '../screens/SplashScreen';
@@ -35,7 +39,13 @@ export function RootNavigator({initialRouteName = 'Splash'}: {initialRouteName?:
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="SignupCustomer" component={SignupCustomerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      {(['DriverDemo','DriverOffer','DriverJob','DriverCancel','DriverCompleted','DriverEarnings','DriverWithdrawals','DriverWallet','DriverWalletTransaction','DriverTopUp','DriverTopUpReview','DriverTopUpStatus','DriverTripHistory','DriverTripReceipt','DriverPayout','DriverPayoutReview','DriverPayoutStatus','DriverVehicleHub','DriverDocumentsHub','DriverDemoVerification','DriverPerformance','DriverSafety','DriverPreferences'] as const).map(name=><Stack.Screen key={name} name={name} component={DriverScreen}/>)}
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPasswordCode" component={ResetPasswordCodeScreen} />
+      <Stack.Screen name="ResetPasswordNew" component={ResetPasswordNewScreen} />
+      <Stack.Screen name="ResetPasswordSuccess" component={ResetPasswordSuccessScreen} options={{gestureEnabled:false}} />
+      <Stack.Screen name="DriverOffer" component={DriverOfferScreen} options={{headerTransparent:true,contentStyle:{backgroundColor:'transparent'},scrollEdgeEffects:{top:'hidden',bottom:'hidden'}}}/>
+      <Stack.Screen name="DriverJob" component={DriverRideScreen} options={{headerTransparent:true,contentStyle:{backgroundColor:'transparent'},scrollEdgeEffects:{top:'hidden',bottom:'hidden'}}}/>
+      <Stack.Screen name="DriverPayout" component={DriverWithdrawScreen}/><Stack.Screen name="DriverPayoutStatus" component={DriverWithdrawScreen}/>{(['DriverDemo','DriverCancel','DriverCompleted','DriverEarnings','DriverWithdrawals','DriverWallet','DriverWalletTransaction','DriverTopUp','DriverTopUpReview','DriverTopUpStatus','DriverTripHistory','DriverTripReceipt','DriverVehicleHub','DriverDocumentsHub','DriverDemoVerification','DriverPerformance','DriverSafety','DriverPreferences'] as const).map(name=><Stack.Screen key={name} name={name} component={DriverScreen}/>)}
       <Stack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
       <Stack.Screen name="SelectRole" component={SelectRoleScreen} />
       {(['DriverType','DriverDetails','DriverVehicle','DriverDocuments','DriverDocumentPreview','DriverSelfieIntro','DriverReview','DriverVerificationStatus','SignupWelcome'] as const).map(name=><Stack.Screen key={name} name={name} component={DriverOnboardingScreen}/>)}
