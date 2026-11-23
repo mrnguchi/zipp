@@ -1,0 +1,150 @@
+name: zipp-dev
+
+x-application: &application
+  image: ${ZIPP_IMAGE:-zipp-backend:local}
+  pull_policy: never
+  build: { context: ../../backend, target: runtime }
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  cpus: 1
+  stop_grace_period: 15s
+  restart: unless-stopped
+  environment: &application-env
+    NODE_ENV: development
+    DATABASE_URL: postgresql://zipp_app:local_app_only@postgres:5432/zipp_dev
+    DB_POOL_MAX: 5
+    REDIS_QUEUE_URL: redis://:local_queue_only@redis-queue:6379
+    REDIS_CACHE_URL: redis://:local_cache_only@redis-cache:6379
+    LOG_LEVEL: info
+    DELIVERIES_ENABLED: ${DELIVERIES_ENABLED:-false}
+    DELIVERY_CODE_ADAPTER: local
+    RIDES_ENABLED: ${RIDES_ENABLED:-false}
+    PAYMENTS_ENABLED: ${PAYMENTS_ENABLED:-false}
+    PAYMENT_ADAPTER: local
+    PAYMENT_LOCAL_OUTCOME: ${PAYMENT_LOCAL_OUTCOME:-success}
+  depends_on:
+    migrate: { condition: service_completed_successfully }
+    redis-queue: { condition: service_healthy }
+    redis-cache: { condition: service_healthy }
+
+services:
+  postgres:
+    image: postgres:18.6-alpine3.23@sha256:697c180dbf244d3ce4a8f4cbc0156cde840af055c1bf8b76aebe422a4822086f
+    environment:
+      POSTGRES_USER: zipp_owner
+      POSTGRES_PASSWORD: local_owner_only
+      POSTGRES_DB: zipp_dev
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/001-roles.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U zipp_owner -d zipp_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    mem_limit: 512m
+    cpus: 1
+  redis-queue:
+    image: redis:8.2.3-alpine@sha256:08ad0b1d280850169a790dba1393ff7a90aef951fc19632cf4d3ce4f78e679ba
+    command: [redis-server, --requirepass, local_queue_only, --appendonly, "yes", --maxmemory, 192mb, --maxmemory-policy, noeviction]
+    ports: ["127.0.0.1:56379:6379"]
+    volumes: [queue-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, -a, local_queue_only, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    mem_limit: 256m
+  redis-cache:
+    image: redis:8.2.3-alpine@sha256:08ad0b1d280850169a790dba1393ff7a90aef951fc19632cf4d3ce4f78e679ba
+    command: [redis-server, --requirepass, local_cache_only, --maxmemory, 96mb, --maxmemory-policy, allkeys-lru]
+    ports: ["127.0.0.1:56380:6379"]
+    healthcheck:
+      test: [CMD, redis-cli, -a, local_cache_only, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    mem_limit: 128m
+  migrate:
+    image: ${ZIPP_MIGRATION_IMAGE:-zipp-backend:local-migrate}
+    pull_policy: never
+    build: { context: ../../backend, target: migration }
+    environment:
+      MIGRATION_DATABASE_URL: postgresql://zipp_owner:local_owner_only@postgres:5432/zipp_dev
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+  api:
+    <<: *application
+    volumes: [private-documents:/var/lib/zipp/documents, private-delivery-photos:/var/lib/zipp/delivery-photos]
+    ports: ["127.0.0.1:3000:3000"]
+    environment:
+      <<: *application-env
+      REALTIME_ENABLED: ${REALTIME_ENABLED:-false}
+      COMMUNICATIONS_ENABLED: ${COMMUNICATIONS_ENABLED:-false}
+      NOTIFICATIONS_ENABLED: ${NOTIFICATIONS_ENABLED:-false}
+      NOTIFICATION_DATA_KEY: ${NOTIFICATION_DATA_KEY:-}
+      NOTIFICATION_ADAPTER: capture
+      CALLING_ENABLED: ${CALLING_ENABLED:-false}
+      OPERATIONS_ENABLED: ${OPERATIONS_ENABLED:-false}
+      CALLING_ADAPTER: local_control
+      CALL_SIGNAL_KEY: ${CALL_SIGNAL_KEY:-}
+      REALTIME_ALLOW_NATIVE: ${REALTIME_ALLOW_NATIVE:-false}
+      REALTIME_ALLOWED_ORIGINS: ${REALTIME_ALLOWED_ORIGINS:-}
+      AUTH_ENABLED: ${AUTH_ENABLED:-false}
+      AUTH_SIGNING_KEY: ${AUTH_SIGNING_KEY:-}
+      AUTH_DIGEST_KEY: ${AUTH_DIGEST_KEY:-}
+      AUTH_ENCRYPTION_KEY: ${AUTH_ENCRYPTION_KEY:-}
+      AUTH_DELIVERY_MODE: local
+      DRIVER_UPLOADS_ENABLED: ${DRIVER_UPLOADS_ENABLED:-false}
+      DRIVER_DOCUMENT_STORAGE: local
+      DRIVER_DOCUMENT_ROOT: /var/lib/zipp/documents
+      DELIVERY_MEDIA_ENABLED: ${DELIVERY_MEDIA_ENABLED:-false}
+      DELIVERY_MEDIA_ADAPTER: local
+      DELIVERY_MEDIA_ROOT: /var/lib/zipp/delivery-photos
+      PRICING_ENABLED: ${PRICING_ENABLED:-false}
+      ROUTING_ADAPTER: fixture
+  worker:
+    <<: *application
+    stop_grace_period: 60s
+    volumes: [notification-captures:/var/lib/zipp/notification-captures]
+    command: [node, dist/worker.js]
+    environment:
+      <<: *application-env
+      HEALTH_PORT: 3001
+      SERVICE_ROLE: worker
+      NOTIFICATIONS_ENABLED: ${NOTIFICATIONS_ENABLED:-false}
+      NOTIFICATION_DATA_KEY: ${NOTIFICATION_DATA_KEY:-}
+      NOTIFICATION_ADAPTER: capture
+      NOTIFICATION_DISPATCH_ENABLED: ${NOTIFICATION_DISPATCH_ENABLED:-false}
+      NOTIFICATION_CAPTURE_ROOT: /var/lib/zipp/notification-captures
+      CALLING_ENABLED: ${CALLING_ENABLED:-false}
+      CALLING_ADAPTER: local_control
+      CALLING_REAPER_ENABLED: ${CALLING_REAPER_ENABLED:-false}
+  test:
+    profiles: [test]
+    image: ${ZIPP_TEST_IMAGE:-zipp-backend:local-test}
+    pull_policy: never
+    build: { context: ../../backend, target: test }
+    environment:
+      <<: *application-env
+      NODE_ENV: test
+      RUN_SERVICE_TESTS: "true"
+      API_BASE_URL: http://api:3000
+      WORKER_HEALTH_URL: http://worker:3001
+    depends_on:
+      api: { condition: service_healthy }
+      worker: { condition: service_healthy }
+    restart: "no"
+
+volumes:
+  postgres-data:
+  queue-data:
+  private-documents:
+  private-delivery-photos:
+  notification-captures:

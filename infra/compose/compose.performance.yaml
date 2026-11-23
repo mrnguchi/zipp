@@ -1,0 +1,13 @@
+services:
+  k6:
+    image: grafana/k6:2.3.0@sha256:2dd4756ec6e14e62778916e1eb850108e4b499304c02df56760fa0bdb0fba0b8
+    volumes: [../../performance/k6:/scripts:ro]
+    environment:
+      BASE_URL: http://api:3000
+      PROFILE: ${PROFILE:-baseline}
+      RATE: ${RATE:-20}
+      DURATION: ${DURATION:-30s}
+    command: [run, /scripts/foundation.js]
+    depends_on:
+      api: { condition: service_healthy }
+    mem_limit: 256m

@@ -249,3 +249,17 @@ activity records. Development builds include three terminal sample activities so
 the design can be reviewed immediately; release builds start empty. Actual local
 bookings update the list. History currently lasts for the app session; backend
 history/persistence and live-trip resumption must be integrated before launch.
+
+## M6 delivery API mode (2026-11-14)
+
+Set `EXPO_PUBLIC_DELIVERY_API_ENABLED=true` and a reachable `EXPO_PUBLIC_API_URL` including `/api/v1` only when deliberately using the local backend. The default keeps the separate visual demo. API mode uses real authentication, server quotes/holds/status, private required photos and declared weight, contact codes, support issues, receipts/ratings, foreground courier custody and restricted tracking. It does not use the local sample wallet/PIN/movement. Native SDK 58 crypto, SecureStore and file-system dependencies are pinned; custom native binaries must include them.
+
+Read [setup, privacy, retry and device limits](../docs/backend/M6_MOBILE_INTEGRATION.md) and [actual evidence](../docs/backend/M6_VERIFICATION.md). TypeScript and local bundle exports are separate from tests/device verification. No suite, live user flow, real SMS/payment or hosting was executed in this pass.
+
+## M7.1 live participant updates
+
+`EXPO_PUBLIC_REALTIME_ENABLED=false` keeps the existing REST path. Opting in uses Socket.IO 4.8.4 over WebSocket only, fresh private JWT handshake auth, foreground cleanup and bounded reconnect/REST resync. Delivery markers update from authorized server projections; state/money still refresh through REST. No token enters a URL or map WebView. Backend `REALTIME_ENABLED` and exact-origin/native policy must be explicitly configured. No microphone/background permission, push or calling provider is installed. Read [M7 guide](../docs/backend/M7_REALTIME.md) and [evidence](../docs/backend/M7_VERIFICATION.md) for initial resource caps and unrun native/runtime gates.
+
+## M7 foreground messages and activity (2026-11-23)
+
+EXPO_PUBLIC_COMMUNICATIONS_ENABLED=false and EXPO_PUBLIC_NOTIFICATION_INBOX_ENABLED=false remain opt-in. When enabled, the Messages tab connects private support/history/send and generic activity inbox APIs; a delivery conversation opens from its participant screen. No real push, calling SDK, microphone permission or native ringing is introduced. Native pending write identity metadata uses SecureStore, with no stored message text; web recovery is memory-only. [Integration/runbook](../docs/backend/M7_MOBILE_COMMUNICATIONS.md), [M7 evidence](../docs/backend/M7_VERIFICATION.md), [self-hosted calling direction](../docs/backend/adr/0016-m7-self-hosted-calling-direction.md). Tests are written, unrun; no native/device/security acceptance claim.

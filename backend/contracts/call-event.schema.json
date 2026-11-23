@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Persisted local call metadata event/outbox intent v1",
+  "description": "Reference metadata only; not a published ringing event or native push/media delivery. No audio, SDP, ICE, tokens, device proof or credentials.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "callId",
+    "aggregateVersion",
+    "type",
+    "actorUserId",
+    "reason",
+    "occurredAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "callId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "type": {
+      "enum": [
+        "call.ringing",
+        "call.accepted",
+        "call.rejected",
+        "call.missed",
+        "call.failed",
+        "call.ended"
+      ]
+    },
+    "actorUserId": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        null,
+        "DECLINED",
+        "RING_TIMEOUT",
+        "CONNECT_TIMEOUT",
+        "USER_ENDED",
+        "PARTICIPANT_UNAVAILABLE"
+      ]
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

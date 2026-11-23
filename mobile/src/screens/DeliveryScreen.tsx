@@ -1,3 +1,5 @@
+import {environment} from '../config/environment';
+import {DeliveryApiScreen} from '../features/deliveries/DeliveryApiScreen';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ComponentRef } from 'react';
 import { ActivityIndicator, Animated, Image, Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, Share, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
@@ -37,7 +39,8 @@ import type { RootStackParamList } from '../navigation/types';
 
 type StopKey = 'pickup' | 'dropoff';
 type Panel = 'cancel' | 'contact' | 'call' | 'support' | 'wallet' | 'simulation' | null;
-export function DeliveryScreen() {
+export function DeliveryScreen(){return environment.deliveryApiEnabled?<DeliveryApiScreen/>:<DemoDeliveryScreen/>;}
+function DemoDeliveryScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();

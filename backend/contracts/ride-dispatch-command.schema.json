@@ -1,0 +1,22 @@
+{
+  "title": "Internal ride dispatch command v1",
+  "description": "Queue reference only; worker reloads the persisted job/task/offer state.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "rideId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    }
+  },
+  "required": [
+    "rideId",
+    "schemaVersion"
+  ],
+  "additionalProperties": false
+}

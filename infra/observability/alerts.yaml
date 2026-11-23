@@ -1,0 +1,28 @@
+groups:
+  - name: zipp-foundation
+    rules:
+      - alert: ZippScrapeUnavailable
+        expr: up{job=~"zipp-.*"} == 0
+        for: 1m
+        labels: { severity: warning }
+        annotations: { summary: "Zipp management scrape unavailable" }
+      - alert: ZippDependencyUnavailable
+        expr: zipp_dependency_up == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations: { summary: "A required Zipp dependency is unavailable" }
+      - alert: ZippDatabasePoolWaiting
+        expr: zipp_database_connections{state="waiting"} > 0
+        for: 1m
+        labels: { severity: warning }
+        annotations: { summary: "Zipp database pool is queuing requests" }
+      - alert: ZippQueueBacklog
+        expr: zipp_queue_oldest_wait_seconds > 30
+        for: 1m
+        labels: { severity: warning }
+        annotations: { summary: "Zipp worker queue is delayed" }
+      - alert: ZippTelemetryCollectionFailed
+        expr: zipp_collection_success == 0
+        for: 30s
+        labels: { severity: warning }
+        annotations: { summary: "Zipp telemetry collection is failing" }

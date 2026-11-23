@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Delivery persisted notification envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schemaVersion",
+    "aggregateId",
+    "aggregateVersion",
+    "occurredAt",
+    "payload"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "enum": [
+        "delivery.booked",
+        "delivery.dispatch_wave",
+        "delivery.assigned",
+        "delivery.at_pickup",
+        "delivery.collected",
+        "delivery.in_transit",
+        "delivery.at_destination",
+        "delivery.delivered",
+        "delivery.cancelled",
+        "delivery.no_driver",
+        "delivery.issue_opened",
+        "delivery.return_authorized",
+        "delivery.at_return",
+        "delivery.returned",
+        "delivery.refunded",
+        "delivery.contact_claimed"
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "aggregateId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "deliveryId"
+      ],
+      "properties": {
+        "deliveryId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  },
+  "description": "Persisted versioned REST resync contract. No PIN, contact, photo, token or GPS in event payload. Socket/push integration is deferred."
+}

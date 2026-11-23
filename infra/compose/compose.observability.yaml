@@ -1,0 +1,37 @@
+services:
+  api:
+    environment:
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://collector:4318/v1/traces
+      TRACE_SAMPLE_RATIO: "0.1"
+  worker:
+    environment:
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://collector:4318/v1/traces
+      TRACE_SAMPLE_RATIO: "0.1"
+  collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea
+    command: [--config=/etc/otelcol/config.yaml]
+    volumes: [../observability/collector.yaml:/etc/otelcol/config.yaml:ro]
+    mem_limit: 128m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  prometheus:
+    image: prom/prometheus:v3.16.0@sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06
+    volumes:
+      - ../observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/alerts.yaml:/etc/prometheus/alerts.yaml:ro
+    ports: ["127.0.0.1:9090:9090"]
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.retention.time=24h]
+    mem_limit: 256m
+  grafana:
+    image: grafana/grafana:13.3.0@sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205
+    volumes:
+      - ../observability/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/zipp.yaml:ro
+      - ../observability/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/zipp.yaml:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3300:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    mem_limit: 256m

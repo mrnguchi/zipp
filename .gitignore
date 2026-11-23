@@ -1,0 +1,6 @@
+/artifacts/
+/tmp/
+/.cache/
+/infra/deploy/.env
+/infra/deploy/.env.*
+!/infra/deploy/.env.example

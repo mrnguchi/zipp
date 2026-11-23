@@ -1,17 +1,19 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SharedTrackingScreen } from "../features/deliveries/SharedTrackingScreen";
+import { ConversationScreen } from "../features/communications/ConversationScreen";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { MainTabsScreen } from '../screens/MainTabsScreen';
-import { RoleGuideScreen } from '../screens/RoleGuideScreen';
-import { BookRideScreen } from '../screens/BookRideScreen';
-import { DeliveryScreen } from '../screens/DeliveryScreen';
-import { SavedPlacesScreen } from '../screens/SavedPlacesScreen';
-import { SelectRoleScreen } from '../screens/SelectRoleScreen';
-import { LoginScreen } from '../screens/LoginScreen';
-import { PhoneVerificationScreen } from '../screens/PhoneVerificationScreen';
-import { SignupCustomerScreen } from '../screens/SignupCustomerScreen';
-import { SplashScreen } from '../screens/SplashScreen';
-import { WelcomeScreen } from '../screens/WelcomeScreen';
-import type { RootStackParamList } from './types';
+import { MainTabsScreen } from "../screens/MainTabsScreen";
+import { RoleGuideScreen } from "../screens/RoleGuideScreen";
+import { BookRideScreen } from "../screens/BookRideScreen";
+import { DeliveryScreen } from "../screens/DeliveryScreen";
+import { SavedPlacesScreen } from "../screens/SavedPlacesScreen";
+import { SelectRoleScreen } from "../screens/SelectRoleScreen";
+import { LoginScreen } from "../screens/LoginScreen";
+import { PhoneVerificationScreen } from "../screens/PhoneVerificationScreen";
+import { SignupCustomerScreen } from "../screens/SignupCustomerScreen";
+import { SplashScreen } from "../screens/SplashScreen";
+import { WelcomeScreen } from "../screens/WelcomeScreen";
+import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,7 +24,10 @@ export function RootNavigator() {
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="SignupCustomer" component={SignupCustomerScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
+      <Stack.Screen
+        name="PhoneVerification"
+        component={PhoneVerificationScreen}
+      />
       <Stack.Screen name="SelectRole" component={SelectRoleScreen} />
       <Stack.Screen
         name="RoleHome"
@@ -31,24 +36,34 @@ export function RootNavigator() {
           // The map draws behind the status bar. The screen applies safe-area
           // spacing only to its interactive header, not its background.
           headerTransparent: true,
-          contentStyle: { backgroundColor: 'transparent' },
-          scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' },
+          contentStyle: { backgroundColor: "transparent" },
+          scrollEdgeEffects: { top: "hidden", bottom: "hidden" },
         }}
       />
       <Stack.Screen name="RoleGuide" component={RoleGuideScreen} />
       <Stack.Screen name="SavedPlaces" component={SavedPlacesScreen} />
+      <Stack.Screen name="Conversation" component={ConversationScreen} />
+      <Stack.Screen
+        name="DeliveryTrackingViewer"
+        component={SharedTrackingScreen}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="Delivery"
         component={DeliveryScreen}
-        options={{ headerTransparent: true, contentStyle: { backgroundColor: 'transparent' }, scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' } }}
+        options={{
+          headerTransparent: true,
+          contentStyle: { backgroundColor: "transparent" },
+          scrollEdgeEffects: { top: "hidden", bottom: "hidden" },
+        }}
       />
       <Stack.Screen
         name="BookRide"
         component={BookRideScreen}
         options={{
           headerTransparent: true,
-          contentStyle: { backgroundColor: 'transparent' },
-          scrollEdgeEffects: { top: 'hidden', bottom: 'hidden' },
+          contentStyle: { backgroundColor: "transparent" },
+          scrollEdgeEffects: { top: "hidden", bottom: "hidden" },
         }}
       />
     </Stack.Navigator>

@@ -1,0 +1,15 @@
+# ADR 0017: Smobilpay payment selection and incremental M8
+
+Date: 2026-11-23. Status: provider selected by user; planning started, account contract and implementation pending.
+
+The user explicitly requested moving to M8, then selected Smobilpay using its official S3P API reference and requested step-by-step work plus SMS recommendations. This supersedes earlier instructions to hold M8. Preserve M7 open implementation/acceptance and the standing no-test/local-first/no-live-payment rules. No M7 completion claim is made.
+
+Smobilpay will be the payment integration boundary instead of separate direct MTN/Orange adapters for the initial scope, subject to actual merchant services. Keep the existing finance module, exact XAF ledger, durable idempotency and outbox; the provider adapter cannot own a parallel balance system. Build collection before payout and enable neither until callback/status/recovery/finality handling is implemented. No real request is made by selecting the provider.
+
+User confirmed no sandbox account yet. The official [overview](https://apidocs.smobilpay.com/s3papi/) directs integrators to request test access through its service desk. The [selected reference](https://apidocs.smobilpay.com/s3papi/API-Reference.2066448558.html) and [embedded reference](https://s3papidoc.smobilpay.maviance.info/) coexist with an older [s3pAuth authentication page](https://apidocs.smobilpay.com/s3papi/Authentication.1578338286.html). Authentication/version/reference-field examples differ. Select the account's version/auth contract from its welcome pack; do not mix them, assume backward compatibility or install an SDK based solely on examples. No package/image is selected for installation; existing Node HTTPS/crypto capabilities will be evaluated first.
+
+Persist provider identity, immutable service/recipient/amount/quote/fee/currency and submit/status state before network I/O. Current local provider command lacks those fields and cannot safely become a production provider through a configuration switch. Preserve unique ledger effects and unresolved holds. A timeout/retry/reference lookup needs the provider's confirmed semantics; an absent result does not automatically permit another payout. Reversals require explicit immutable recovery policy before integration acceptance.
+
+SMS remains unselected. The [M8 plan](../M8_PROVIDERS.md) records AvlyText/Twilio/Orange replacement-offer candidates, limitations and current primary links. Choose one initial provider after transactional route/sender/pricing review. Do not add multiple SDKs, failover billing or live SMS while deciding.
+
+No runtime/schema/env/package changes, tests, scans, provider probes, account creation, paid service, hosting, callback publication or live money enabled. Perform document links/whitespace checks only for this slice. Next implementation starts with disabled local payment contracts/transport after the account-specific authentication decision; independent durable recovery design may proceed meanwhile. Actual sandbox/runtime verification remains gated on the user's command.

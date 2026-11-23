@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-test/
+coverage/
+src/generated/
+/contracts/
+package-lock.json

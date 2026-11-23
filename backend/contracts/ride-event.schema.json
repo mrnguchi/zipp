@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ride notification/outbox envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schemaVersion",
+    "aggregateId",
+    "aggregateVersion",
+    "occurredAt",
+    "payload"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "enum": [
+        "ride.booked",
+        "ride.dispatch_wave",
+        "ride.assigned",
+        "ride.arrived",
+        "ride.started",
+        "ride.completion_code_changed",
+        "ride.completed",
+        "ride.cancelled",
+        "ride.no_driver",
+        "ride.dispute_opened",
+        "ride.dispute_released",
+        "ride.refunded"
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "aggregateId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rideId"
+      ],
+      "properties": {
+        "rideId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  },
+  "description": "Persisted/versioned notification history for participant REST resync. Fetch the current authorized snapshot. No PIN, precise GPS or contact in payload; no Socket.IO/native delivery claim."
+}

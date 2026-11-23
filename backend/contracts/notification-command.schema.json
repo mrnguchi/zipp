@@ -1,0 +1,30 @@
+{
+  "title": "Internal notification command v1",
+  "description": "IDs only. Worker must reload PostgreSQL owner/session/device generation/intent and own a live lease. CAPTURED is local capture, not provider/device delivery.",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "MATERIALIZE",
+        "DISPATCH"
+      ]
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "kind",
+    "id"
+  ],
+  "additionalProperties": false
+}

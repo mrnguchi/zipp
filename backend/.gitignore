@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-test/
+coverage/
+src/generated/
+.env
+.env.*
+!.env.example
+!.env.migrate.example
+*.log
+*.tsbuildinfo
+.local/

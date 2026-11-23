@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "code": {
+      "type": "string",
+      "enum": [
+        "UNAUTHENTICATED",
+        "FORBIDDEN",
+        "INVALID_SUBSCRIPTION",
+        "REALTIME_UNAVAILABLE",
+        "REALTIME_LIMIT",
+        "SLOW_CONSUMER",
+        "UNSUPPORTED_COMMAND"
+      ]
+    },
+    "retryAfterSeconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 300
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "code",
+    "retryAfterSeconds"
+  ],
+  "additionalProperties": false
+}

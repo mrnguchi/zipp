@@ -1,0 +1,12 @@
+title = "Zipp source secret policy"
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Generated dependencies, build output and non-source local artifacts"
+paths = ['''(^|/)(node_modules|dist|dist-test|coverage|generated|artifacts|tmp|\.git)/''']
+
+[[allowlists]]
+description = "Exact public local-only fixture passwords; arbitrary examples are still scanned"
+regexTarget = "secret"
+regexes = ['''^local_(app|owner|queue|cache)_only$''']

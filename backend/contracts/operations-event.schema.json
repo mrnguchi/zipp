@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    },
+    "caseId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "REVIEW",
+        "ACCOUNT_STATUS"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "IN_REVIEW",
+        "RESOLVED",
+        "DISMISSED"
+      ]
+    },
+    "reasonCode": {
+      "type": "string",
+      "enum": [
+        "SAFETY_CONCERN",
+        "SERVICE_COMPLAINT",
+        "DUPLICATE_ACTIVITY",
+        "PAYMENT_MISMATCH",
+        "REVIEW_COMPLETED",
+        "INSUFFICIENT_EVIDENCE",
+        "OTHER"
+      ]
+    },
+    "actorUserId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    },
+    "accountStatus": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "SUSPENDED"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+    }
+  },
+  "required": [
+    "id",
+    "caseId",
+    "version",
+    "action",
+    "status",
+    "reasonCode",
+    "actorUserId",
+    "accountStatus",
+    "createdAt"
+  ],
+  "additionalProperties": false,
+  "title": "Persisted operations case event v1",
+  "description": "Append-only metadata intent; no freeform case description/contact/financial secret. Not a published job/provider command."
+}

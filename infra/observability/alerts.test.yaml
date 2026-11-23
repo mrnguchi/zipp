@@ -1,0 +1,41 @@
+rule_files: [/etc/prometheus/alerts.yaml]
+evaluation_interval: 10s
+tests:
+  - interval: 10s
+    input_series:
+      - series: 'up{job="zipp-api"}'
+        values: '0x12'
+      - series: 'zipp_dependency_up{dependency="redis",service="zipp-api"}'
+        values: '0x12'
+      - series: 'zipp_database_connections{state="waiting",service="zipp-api"}'
+        values: '1x12'
+      - series: 'zipp_queue_oldest_wait_seconds{service="zipp-worker"}'
+        values: '31x12'
+      - series: 'zipp_collection_success{component="queue",service="zipp-api"}'
+        values: '0x12'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: ZippScrapeUnavailable
+        exp_alerts:
+          - exp_labels: {job: zipp-api, severity: warning}
+            exp_annotations: {summary: "Zipp management scrape unavailable"}
+      - eval_time: 2m
+        alertname: ZippDependencyUnavailable
+        exp_alerts:
+          - exp_labels: {dependency: redis, service: zipp-api, severity: critical}
+            exp_annotations: {summary: "A required Zipp dependency is unavailable"}
+      - eval_time: 2m
+        alertname: ZippDatabasePoolWaiting
+        exp_alerts:
+          - exp_labels: {state: waiting, service: zipp-api, severity: warning}
+            exp_annotations: {summary: "Zipp database pool is queuing requests"}
+      - eval_time: 2m
+        alertname: ZippQueueBacklog
+        exp_alerts:
+          - exp_labels: {service: zipp-worker, severity: warning}
+            exp_annotations: {summary: "Zipp worker queue is delayed"}
+      - eval_time: 2m
+        alertname: ZippTelemetryCollectionFailed
+        exp_alerts:
+          - exp_labels: {component: queue, service: zipp-api, severity: warning}
+            exp_annotations: {summary: "Zipp telemetry collection is failing"}

@@ -1,8 +1,11 @@
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { StatusBar } from 'expo-status-bar';
-import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
+import { environment } from "../config/environment";
+import { beginAuthentication } from "../features/identity/session";
+import { errorMessage } from "../features/api/transport";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
+import { useTranslation } from "react-i18next";
+import { useState } from "react";
 import {
   Image,
   KeyboardAvoidingView,
@@ -13,14 +16,14 @@ import {
   TextInput,
   View,
   useWindowDimensions,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppText as Text } from '../components/AppText';
-import { ActionButton } from '../components/ActionButton';
-import { useAppTheme } from '../hooks/useAppTheme';
-import type { RootStackParamList } from '../navigation/types';
-import { theme } from '../theme';
+import { AppText as Text } from "../components/AppText";
+import { ActionButton } from "../components/ActionButton";
+import { useAppTheme } from "../hooks/useAppTheme";
+import type { RootStackParamList } from "../navigation/types";
+import { theme } from "../theme";
 
 export function SignupCustomerScreen() {
   const navigation =
@@ -29,32 +32,58 @@ export function SignupCustomerScreen() {
   const { colors } = useAppTheme();
   const { height } = useWindowDimensions();
   const illustrationHeight = Math.min(260, Math.max(155, height * 0.23));
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const createAccount = () => {
+  const createAccount = async () => {
+    if (busy) return;
     if (!name.trim() || !phone.trim() || !password.trim()) {
-      setError(t('signup.missingFields'));
+      setError(t("signup.missingFields"));
       return;
     }
 
-    setError('');
-    navigation.navigate('PhoneVerification', {
+    setError("");
+    if (environment.deliveryApiEnabled) {
+      setBusy(true);
+      try {
+        const challenge = await beginAuthentication(
+          "signup",
+          phone.trim(),
+          password,
+          name.trim(),
+        );
+        setPassword("");
+        navigation.navigate("PhoneVerification", {
+          phone: challenge.phone,
+          purpose: "signup",
+          name: name.trim(),
+        });
+      } catch (e) {
+        setError(errorMessage(e));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    navigation.navigate("PhoneVerification", {
       phone: phone.trim(),
-      purpose: 'signup',
+      purpose: "signup",
       name: name.trim(),
     });
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
       <StatusBar style="dark" />
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -66,18 +95,18 @@ export function SignupCustomerScreen() {
           <View style={styles.headerSection}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={t('common.back')}
+              accessibilityLabel={t("common.back")}
               onPress={() => navigation.goBack()}
               style={styles.back}
             >
               <Text style={[styles.backLabel, { color: colors.dark }]}>
-                {t('common.back')}
+                {t("common.back")}
               </Text>
             </Pressable>
 
             <Image
               accessibilityLabel="Zipp"
-              source={require('../../assets/full logo.png')}
+              source={require("../../assets/full logo.png")}
               resizeMode="contain"
               style={styles.logo}
             />
@@ -86,13 +115,13 @@ export function SignupCustomerScreen() {
               numberOfLines={1}
               style={[styles.heading, { color: colors.secondaryText }]}
             >
-              {t('signup.title')}
+              {t("signup.title")}
             </Text>
           </View>
 
           <Image
-            accessibilityLabel={t('signup.illustration')}
-            source={require('../../assets/signup avatar.png')}
+            accessibilityLabel={t("signup.illustration")}
+            source={require("../../assets/signup avatar.png")}
             resizeMode="contain"
             style={[styles.illustration, { height: illustrationHeight }]}
           />
@@ -101,17 +130,17 @@ export function SignupCustomerScreen() {
             <View style={styles.form}>
               <View style={styles.field}>
                 <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.name')}
+                  {t("signup.name")}
                 </Text>
                 <TextInput
-                  accessibilityLabel={t('signup.name')}
+                  accessibilityLabel={t("signup.name")}
                   autoCapitalize="words"
                   autoComplete="name"
                   onChangeText={(value) => {
                     setName(value);
-                    setError('');
+                    setError("");
                   }}
-                  placeholder={t('signup.namePlaceholder')}
+                  placeholder={t("signup.namePlaceholder")}
                   placeholderTextColor={colors.mutedText}
                   returnKeyType="done"
                   style={[
@@ -124,17 +153,17 @@ export function SignupCustomerScreen() {
 
               <View style={styles.field}>
                 <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.phone')}
+                  {t("signup.phone")}
                 </Text>
                 <TextInput
-                  accessibilityLabel={t('signup.phone')}
+                  accessibilityLabel={t("signup.phone")}
                   autoComplete="tel"
                   keyboardType="phone-pad"
                   onChangeText={(value) => {
                     setPhone(value);
-                    setError('');
+                    setError("");
                   }}
-                  placeholder={t('signup.phonePlaceholder')}
+                  placeholder={t("signup.phonePlaceholder")}
                   placeholderTextColor={colors.mutedText}
                   returnKeyType="next"
                   style={[
@@ -147,17 +176,22 @@ export function SignupCustomerScreen() {
 
               <View style={styles.field}>
                 <Text style={[styles.label, { color: colors.secondaryText }]}>
-                  {t('signup.password')}
+                  {t("signup.password")}
                 </Text>
-                <View style={[styles.passwordInput, { backgroundColor: colors.input }]}>
+                <View
+                  style={[
+                    styles.passwordInput,
+                    { backgroundColor: colors.input },
+                  ]}
+                >
                   <TextInput
-                    accessibilityLabel={t('signup.password')}
+                    accessibilityLabel={t("signup.password")}
                     autoComplete="new-password"
                     onChangeText={(value) => {
                       setPassword(value);
-                      setError('');
+                      setError("");
                     }}
-                    placeholder={t('signup.passwordPlaceholder')}
+                    placeholder={t("signup.passwordPlaceholder")}
                     placeholderTextColor={colors.mutedText}
                     returnKeyType="done"
                     secureTextEntry={!passwordVisible}
@@ -168,15 +202,20 @@ export function SignupCustomerScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={
                       passwordVisible
-                        ? t('signup.hidePassword')
-                        : t('signup.showPassword')
+                        ? t("signup.hidePassword")
+                        : t("signup.showPassword")
                     }
                     onPress={() => setPasswordVisible((visible) => !visible)}
                   >
-                    <Text style={[styles.showPassword, { color: colors.secondaryText }]}>
+                    <Text
+                      style={[
+                        styles.showPassword,
+                        { color: colors.secondaryText },
+                      ]}
+                    >
                       {passwordVisible
-                        ? t('signup.hidePassword')
-                        : t('signup.showPassword')}
+                        ? t("signup.hidePassword")
+                        : t("signup.showPassword")}
                     </Text>
                   </Pressable>
                 </View>
@@ -195,22 +234,27 @@ export function SignupCustomerScreen() {
 
           <View style={styles.submit}>
             <ActionButton
-              accessibilityLabel={t('signup.createAccount')}
-              onPress={createAccount}
+              accessibilityLabel={t("signup.createAccount")}
+              disabled={busy}
+              onPress={() => {
+                void createAccount();
+              }}
             >
-              {t('signup.createAccount')}
+              {t("signup.createAccount")}
             </ActionButton>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={`${t('signup.alreadyHaveAccount')} ${t('signup.signIn')}`}
-              onPress={() => navigation.navigate('Login')}
+              accessibilityLabel={`${t("signup.alreadyHaveAccount")} ${t("signup.signIn")}`}
+              onPress={() => navigation.navigate("Login")}
               style={styles.signIn}
             >
-              <Text style={[styles.signInPrompt, { color: colors.secondaryText }]}>
-                {t('signup.alreadyHaveAccount')}{' '}
+              <Text
+                style={[styles.signInPrompt, { color: colors.secondaryText }]}
+              >
+                {t("signup.alreadyHaveAccount")}{" "}
               </Text>
               <Text style={[styles.signInLabel, { color: colors.primary }]}>
-                {t('signup.signIn')}
+                {t("signup.signIn")}
               </Text>
             </Pressable>
           </View>
@@ -232,21 +276,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 8,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   headerSection: {
-    width: '100%',
-    alignItems: 'center',
+    width: "100%",
+    alignItems: "center",
   },
   back: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     minHeight: 32,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   backLabel: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   logo: {
     width: 155,
@@ -254,22 +298,22 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   heading: {
-    width: '100%',
+    width: "100%",
     marginTop: 6,
     fontSize: 27,
-    fontWeight: '800',
+    fontWeight: "800",
     lineHeight: 31,
-    textAlign: 'center',
+    textAlign: "center",
   },
   illustration: {
-    width: '76%',
+    width: "76%",
     marginVertical: 2,
   },
   formSection: {
-    width: '100%',
+    width: "100%",
   },
   form: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     gap: 16,
   },
   field: {
@@ -277,7 +321,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   input: {
     minHeight: 50,
@@ -288,8 +332,8 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     minHeight: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     borderRadius: 22,
     paddingLeft: 15,
     paddingRight: 13,
@@ -302,32 +346,32 @@ const styles = StyleSheet.create({
   },
   showPassword: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   error: {
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     marginTop: 10,
     fontSize: 12,
     lineHeight: 17,
   },
   submit: {
-    alignSelf: 'stretch',
-    alignItems: 'stretch',
+    alignSelf: "stretch",
+    alignItems: "stretch",
     paddingTop: 18,
     gap: 16,
   },
   signIn: {
-    alignSelf: 'center',
+    alignSelf: "center",
     minHeight: 24,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   signInPrompt: {
     fontSize: 13,
   },
   signInLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: "700",
   },
 });

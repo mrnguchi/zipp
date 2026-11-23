@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Identity event envelope v1 (future outbox integration)",
+  "description": "Reserved contract only. M2 persists audit records; no realtime/outbox event publisher is enabled.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "type",
+    "schemaVersion",
+    "aggregateId",
+    "aggregateVersion",
+    "occurredAt",
+    "payload"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "type": {
+      "enum": [
+        "identity.phone_verified",
+        "identity.password_changed",
+        "identity.sessions_revoked",
+        "identity.deletion_requested"
+      ]
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "aggregateId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "userId"
+      ],
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    }
+  }
+}

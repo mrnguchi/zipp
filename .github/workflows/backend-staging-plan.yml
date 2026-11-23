@@ -1,0 +1,52 @@
+name: Prepare staging promotion
+on:
+  workflow_dispatch:
+    inputs:
+      prepare_staging:
+        description: Explicitly authorize preparing a future staging bundle
+        required: false
+        type: boolean
+        default: false
+      runtime:
+        description: Runtime image from a successful protected release, including sha256 digest
+        required: true
+        type: string
+      migration:
+        description: Migration image from the same protected release, including sha256 digest
+        required: true
+        type: string
+      commit:
+        description: Full commit SHA for that release
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main' && inputs.prepare_staging == true && vars.BACKEND_STAGING_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: backend/.node-version
+      - name: Validate immutable promotion inputs
+        env:
+          RUNTIME: ${{ inputs.runtime }}
+          MIGRATION: ${{ inputs.migration }}
+          COMMIT: ${{ inputs.commit }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          node --input-type=module -e 'import{writeFileSync}from"node:fs";import{validateRelease}from"./backend/scripts/deployment.mjs";const m={schemaVersion:1,commit:process.env.COMMIT,runtime:process.env.RUNTIME,migration:process.env.MIGRATION};validateRelease(m,"ghcr.io/"+process.env.REPOSITORY.toLowerCase()+"/backend");writeFileSync("release.json",JSON.stringify(m,null,2))'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: staging-promotion-plan
+          path: |
+            release.json
+            infra/deploy/compose.staging.yaml
+            infra/deploy/deploy.sh
+          retention-days: 14

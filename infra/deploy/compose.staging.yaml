@@ -1,0 +1,27 @@
+# Staging only: database/Redis/TLS ingress are pre-provisioned, never public containers here.
+x-runtime: &runtime
+  image: ${ZIPP_IMAGE:?digest-pinned runtime image required}
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  cpus: 1
+  stop_grace_period: 15s
+  restart: unless-stopped
+  env_file: ["${ZIPP_RUNTIME_ENV_FILE:?restricted runtime environment file required}"]
+  environment: { NODE_ENV: production }
+services:
+  api:
+    <<: *runtime
+    ports: ["127.0.0.1:${ZIPP_API_PORT:-3000}:3000"]
+  worker:
+    <<: *runtime
+    command: [node, dist/worker.js]
+    environment: { NODE_ENV: production, SERVICE_ROLE: worker, HEALTH_PORT: 3001 }
+  migrate:
+    image: ${ZIPP_MIGRATION_IMAGE:?digest-pinned migration image required}
+    env_file: ["${ZIPP_MIGRATION_ENV_FILE:?separate restricted migration environment file required}"]
+    environment: { NODE_ENV: production }
+    restart: "no"

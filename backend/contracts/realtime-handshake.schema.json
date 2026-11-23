@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "accessToken": {
+      "type": "string",
+      "minLength": 40,
+      "maxLength": 4096,
+      "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$",
+      "writeOnly": true,
+      "description": "Current private access JWT; auth payload only, never query/URL/log/output."
+    },
+    "jobType": {
+      "type": "string",
+      "enum": [
+        "RIDE",
+        "DELIVERY"
+      ]
+    },
+    "jobId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+    },
+    "afterVersion": {
+      "default": 0,
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2147483646
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "accessToken",
+    "jobType",
+    "jobId",
+    "afterVersion"
+  ],
+  "additionalProperties": false
+}
