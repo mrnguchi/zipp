@@ -17129,7 +17129,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls": {
@@ -17256,7 +17256,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data.",
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending.",
         "parameters": [
           {
             "name": "Idempotency-Key",
@@ -17385,7 +17385,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}": {
@@ -17513,7 +17513,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}/accept": {
@@ -17661,7 +17661,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}/reject": {
@@ -17809,7 +17809,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}/end": {
@@ -17957,7 +17957,145 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
+      }
+    },
+    "/calling/calls/{id}/relay-credentials": {
+      "post": {
+        "operationId": "getCallRelayCredentials",
+        "tags": [
+          "Calling"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RelayCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful result; no-store",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelayCredentials"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Safe error response; 429/503 may include Retry-After seconds.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-enabled-by-default": false,
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}/signals": {
@@ -18095,7 +18233,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/calling/calls/{id}/signals/read": {
@@ -18233,7 +18371,7 @@
           }
         },
         "x-enabled-by-default": false,
-        "description": "M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data."
+        "description": "Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending."
       }
     },
     "/operations/capabilities": {
@@ -24792,6 +24930,109 @@
         ],
         "additionalProperties": false
       },
+      "RelayCredentialRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$"
+          },
+          "deviceGeneration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "proof": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$",
+            "writeOnly": true
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "epoch": {
+            "type": "number",
+            "const": 1
+          }
+        },
+        "required": [
+          "deviceId",
+          "deviceGeneration",
+          "proof",
+          "expectedVersion",
+          "epoch"
+        ],
+        "additionalProperties": false
+      },
+      "RelayCredentials": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "iceServers": {
+            "minItems": 1,
+            "maxItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "urls": {
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "maxLength": 128
+                  }
+                },
+                "username": {
+                  "type": "string",
+                  "pattern": "^\\d{10,12}:[a-f0-9]{64}$"
+                },
+                "credential": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9+/]{27}=$"
+                }
+              },
+              "required": [
+                "urls",
+                "username",
+                "credential"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "iceTransportPolicy": {
+            "type": "string",
+            "const": "relay"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "serverTime": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "audioAvailable": {
+            "type": "boolean",
+            "const": false
+          }
+        },
+        "required": [
+          "iceServers",
+          "iceTransportPolicy",
+          "expiresAt",
+          "serverTime",
+          "audioAvailable"
+        ],
+        "additionalProperties": false
+      },
       "CreateCall": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -25478,8 +25719,7 @@
             "const": false
           },
           "turnCredentialsAvailable": {
-            "type": "boolean",
-            "const": false
+            "type": "boolean"
           },
           "nativeIncomingCalls": {
             "type": "boolean",

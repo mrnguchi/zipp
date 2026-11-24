@@ -19,6 +19,10 @@ import { NotificationDevicesService } from '../../src/modules/notifications/appl
 import { NotificationAdmissionService } from '../../src/modules/notifications/application/notification-admission.service.js';
 import { NotificationDeliveryService } from '../../src/modules/notifications/application/notification-delivery.service.js';
 import { CallingConfig } from '../../src/modules/calling/calling.config.js';
+import { CallRelayConfig } from '../../src/modules/calling/call-relay.config.js';
+import { CallRelay } from '../../src/modules/calling/application/call-relay.port.js';
+import { CallRelayService } from '../../src/modules/calling/application/call-relay.service.js';
+import type { RelayGrant } from '../../src/modules/calling/application/call-relay.port.js';
 import { CallRepository } from '../../src/modules/calling/application/call.repository.js';
 import { PrismaCallRepository } from '../../src/modules/calling/infrastructure/prisma-call.repository.js';
 import { CallAccessService } from '../../src/modules/calling/application/call-access.service.js';
@@ -57,6 +61,31 @@ export async function callingHarness(
       CallCreateService,
       CallLifecycleService,
       CallReadService,
+      CallRelayService,
+      { provide: CallRelayConfig, useValue: { assertEnabled: () => {} } },
+      {
+        provide: CallRelay,
+        useValue: {
+          // Admission/crypto double only; real DB/job/device authorization below
+          // does not establish coturn authentication or delivery interoperability.
+          mint: (g: RelayGrant) => ({
+            iceServers: [
+              {
+                urls: [
+                  'turn:192.168.1.50:3478?transport=udp',
+                  'turn:192.168.1.50:3478?transport=tcp',
+                ],
+                username: 'unit-opaque',
+                credential: 'unit-ephemeral',
+              },
+            ],
+            iceTransportPolicy: 'relay' as const,
+            expiresAt: g.expiresAt.toISOString(),
+            serverTime: g.serverTime.toISOString(),
+            audioAvailable: false as const,
+          }),
+        },
+      },
       NotificationDevicesService,
       NotificationAdmissionService,
       NotificationsFacade,
@@ -104,6 +133,7 @@ export async function callingHarness(
     creates: module.get(CallCreateService),
     life: module.get(CallLifecycleService),
     reads: module.get(CallReadService),
+    relay: module.get(CallRelayService),
     devices: module.get(NotificationDevicesService),
     reaper: new CallReaperService(
       tx,

@@ -1,6 +1,10 @@
 /artifacts/
 /tmp/
 /.cache/
+/infra/calling/.local/
+/infra/calling/.env
+/infra/calling/.env.*
+!/infra/calling/.env.example
 /infra/deploy/.env
 /infra/deploy/.env.*
 !/infra/deploy/.env.example

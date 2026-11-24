@@ -1,0 +1,51 @@
+# Separate opt-in LOCAL project. Never merge into ordinary backend startup.
+name: zipp-turn-local
+
+services:
+  turn:
+    profiles: [voice-relay]
+    image: ghcr.io/coturn/coturn:4.19.2-r0-alpine@sha256:974824bdefa8759b7aa4508daf5066fdd9f5411e925055b6132fb2904aecca01
+    pull_policy: never
+    # Bypass upstream shell evaluation and external-address detection.
+    entrypoint: [/usr/bin/turnserver]
+    command: [-c, /run/secrets/turn-config]
+    user: "${ZIPP_TURN_UID:?Prepare local relay ownership}:${ZIPP_TURN_GID:?Prepare local relay ownership}"
+    read_only: true
+    cap_drop: [ALL]
+    # Upstream binary has this file capability; retain only its bounding bit.
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:true]
+    restart: "no"
+    stop_grace_period: 10s
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    ulimits:
+      nofile: { soft: 4096, hard: 4096 }
+    logging: { driver: none }
+    healthcheck: { disable: true }
+    tmpfs:
+      - "/tmp:rw,noexec,nosuid,nodev,size=8m,mode=0700,uid=${ZIPP_TURN_UID},gid=${ZIPP_TURN_GID}"
+      - "/var/lib/coturn:rw,noexec,nosuid,nodev,size=4m,mode=0700,uid=${ZIPP_TURN_UID},gid=${ZIPP_TURN_GID}"
+    secrets:
+      - source: turn-config
+        target: turn-config
+    ports:
+      - "${ZIPP_TURN_LAN_IP:?Choose an assigned private LAN IP}:3478:3478/udp"
+      - "${ZIPP_TURN_LAN_IP:?Choose an assigned private LAN IP}:3478:3478/tcp"
+    networks:
+      relay-only:
+        ipv4_address: 172.30.240.2
+
+secrets:
+  # File-secret UID/GID remapping is not assumed; preparation matches host UID.
+  turn-config:
+    file: ./.local/turnserver.conf
+
+networks:
+  relay-only:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      config:
+        - subnet: 172.30.240.0/29

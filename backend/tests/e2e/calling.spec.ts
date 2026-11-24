@@ -17,6 +17,8 @@ import type { Request, Response, NextFunction } from 'express';
 import request from 'supertest';
 import { CallingController } from '../../src/modules/calling/presentation/calling.controller.js';
 import { CallingConfig } from '../../src/modules/calling/calling.config.js';
+import { CallRelayConfig } from '../../src/modules/calling/call-relay.config.js';
+import { CallRelayService } from '../../src/modules/calling/application/call-relay.service.js';
 import { CallCreateService } from '../../src/modules/calling/application/call-create.service.js';
 import { CallLifecycleService } from '../../src/modules/calling/application/call-lifecycle.service.js';
 import { CallReadService } from '../../src/modules/calling/application/call-read.service.js';
@@ -44,7 +46,8 @@ describe('M7.4 call HTTP boundaries (written, not run)', () => {
   const create = jest.fn<CallCreateService['create']>(),
     command = jest.fn<CallLifecycleService['command']>(),
     send = jest.fn<CallSignalingService['send']>(),
-    read = jest.fn<CallSignalingService['read']>();
+    read = jest.fn<CallSignalingService['read']>(),
+    issueRelay = jest.fn<CallRelayService['issue']>();
   const device = () => ({
     deviceId: randomUUID(),
     deviceGeneration: 1,
@@ -61,6 +64,8 @@ describe('M7.4 call HTTP boundaries (written, not run)', () => {
           useValue: { active: () => Promise.resolve({ call: null }) },
         },
         { provide: CallSignalingService, useValue: { send, read } },
+        { provide: CallRelayConfig, useValue: new CallRelayConfig({}) },
+        { provide: CallRelayService, useValue: { issue: issueRelay } },
         {
           provide: CallingConfig,
           useValue: new CallingConfig({
@@ -126,6 +131,65 @@ describe('M7.4 call HTTP boundaries (written, not run)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ connected: true })
       .expect(404);
+  });
+  it('keeps relay proof in a strict POST body, requires auth and returns no-store without a persisted command key', async () => {
+    const input = { ...device(), epoch: 1 as const, expectedVersion: 2 };
+    await request(server)
+      .post(`/api/v1/calling/calls/${id}/relay-credentials`)
+      .send(input)
+      .expect(401);
+    for (const invalid of [
+      { ...input, peerUserId: randomUUID() },
+      { ...input, epoch: 2 },
+      { ...input, proof: 'weak' },
+      { ...input, urls: ['turn:arbitrary'] },
+    ])
+      await request(server)
+        .post(`/api/v1/calling/calls/${id}/relay-credentials`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(invalid)
+        .expect(400);
+    expect(issueRelay).not.toHaveBeenCalled();
+    issueRelay.mockRejectedValue(
+      new ApiError(
+        'FEATURE_DISABLED',
+        503,
+        'Relay credentials unavailable',
+        60,
+      ),
+    );
+    const disabled = await request(server)
+      .post(`/api/v1/calling/calls/${id}/relay-credentials`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(input)
+      .expect(503);
+    expect(disabled.headers['cache-control']).toBe('no-store');
+    expect(disabled.text).not.toContain(input.proof);
+    expect(disabled.headers['retry-after']).toBe('60');
+    issueRelay.mockResolvedValue({
+      iceServers: [
+        {
+          urls: [
+            'turn:192.168.1.50:3478?transport=udp',
+            'turn:192.168.1.50:3478?transport=tcp',
+          ],
+          username: 'opaque-grant',
+          credential: 'unit-ephemeral',
+        },
+      ],
+      iceTransportPolicy: 'relay',
+      expiresAt: new Date().toISOString(),
+      serverTime: new Date().toISOString(),
+      audioAvailable: false,
+    });
+    const response = await request(server)
+      .post(`/api/v1/calling/calls/${id}/relay-credentials`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(input)
+      .expect(200);
+    expect(response.headers['cache-control']).toBe('no-store');
+    expect(response.text).not.toContain(input.proof);
+    expect(issueRelay).toHaveBeenLastCalledWith(a, id, input);
   });
   it('validates idempotency keys and refuses actor/room/provider injection', async () => {
     const input = {

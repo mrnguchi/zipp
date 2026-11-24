@@ -1,5 +1,11 @@
 # Zipp backend development contract
 
+2026-11-24 voice step 3: [authorized relay credentials](M7_RELAY_CREDENTIALS.md) and [ADR 0020](adr/0020-m7-scoped-relay-credentials.md) add default-off API-only ephemeral setup grants with fresh claimed-participant authorization. Current source: 61 tables/139 REST operations, same four unapplied M7 migrations. User-ended healthy conversations with no fixed duration cutoff are required; ongoing media/renewal/liveness/reconnect is the next slice, not implemented here. Build/static checks passed; tests unrun, no key issuance or services started. Earlier entries describe their slices.
+
+2026-11-24 voice step 2: [local relay setup](M7_TURN_RELAY.md) and [ADR 0019](adr/0019-m7-local-turn-relay.md) add a separate opt-in coturn profile and private file preparation. Source/Compose checks passed; no image/relay startup or tests. Temporary credentials, usable foreground media/reconnect, iOS qualification and incoming push remain pending. Current backend source/migrations/contracts/flags are unchanged.
+
+2026-11-23 foreground voice continuation: work returned to M7 native voice before incoming-call push. Exact mobile SDKs, focused development-only native configuration and an assembled/statically inspected Android ARM64 debug APK are present; read [native foundation/build evidence](M7_NATIVE_VOICE.md) and [ADR 0018](adr/0018-m7-foreground-native-voice-foundation.md). Actual audio, relay credentials, ongoing-call/reconnect policy and native acceptance remain pending. No tests, migrations or hosting performed; earlier M8 planning authorization remains recorded below.
+
 2026-11-23 M8 update: user authorized starting M8 despite pending M7 work. Smobilpay selected; sandbox account and SMS selection pending. Read [M8 steps](M8_PROVIDERS.md) and [provider ADR](adr/0017-m8-smobilpay-provider-selection.md). Earlier M8 hold notes are historical. Source/schema/runtime unchanged by this planning slice.
 
 2026-11-23 continuation: [staff operations](M7_OPERATIONS.md) and [foreground mobile communication/inbox](M7_MOBILE_COMMUNICATIONS.md) source are present (61 source tables, 138 REST operations, four unapplied M7 migrations). Self-hosted WebRTC/TURN chosen in [ADR 0016](adr/0016-m7-self-hosted-calling-direction.md); real push/audio/native work remains open. Follow [M7 completion checklist](M7_COMPLETION_CHECKLIST.md) and keep M8 on hold. No tests/migrations ran; local DB/Docker engine unavailable.
@@ -33,6 +39,9 @@ The earlier legacy-backend stabilization plan is superseded. The separate backen
 | [M7 chat/support](M7_CHAT_SUPPORT.md) | Durable participant history, support tickets, command receipts, migration and recovery |
 | [M7 notifications](M7_NOTIFICATIONS.md) | Private devices/inbox, transactional intents, local capture, retry/fencing and pending native/provider gates |
 | [M7 local calling](M7_CALLING.md) | Participant/session/device claims, control metadata, ephemeral signaling and pending real media/native acceptance |
+| [M7 native voice foundation](M7_NATIVE_VOICE.md) | Exact native dependencies, development Android preparation/build, and remaining relay/audio lifecycle gates |
+| [M7 local TURN relay](M7_TURN_RELAY.md) | Optional pinned local relay, private preparation, narrow peer topology and pending runtime/media gates |
+| [M7 relay credentials](M7_RELAY_CREDENTIALS.md) | Private ephemeral setup grants, scoped authorization, API-only file secrets and user-ended conversation policy |
 | [M7 evidence](M7_VERIFICATION.md) | First-slice implementation, allowed build/static evidence and unrun acceptance gates |
 | [M6 evidence](M6_VERIFICATION.md) | M6 completion-pass build/static results and unrun custody/race/runtime/native gates |
 | [Engineering standards](../engineering-standards.md) | Code, comments, security, testing, and definition of done |

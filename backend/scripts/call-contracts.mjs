@@ -55,6 +55,15 @@ export function addCallContracts(schemas, routes) {
     ]),
     [
       'post',
+      '/calling/calls/{id}/relay-credentials',
+      'getCallRelayCredentials',
+      'RelayCredentialRequest',
+      false,
+      200,
+      'RelayCredentials',
+    ],
+    [
+      'post',
       '/calling/calls/{id}/signals',
       'sendCallSignal',
       'SendCallSignal',
@@ -80,8 +89,12 @@ export function decorateCallPaths(paths) {
         op.tags = ['Calling'];
         op['x-enabled-by-default'] = false;
         op.description =
-          'M7.4 local call control only. No connected audio, provider/TURN credentials, OS ringing or native SDK. Requires current private participant/claimed LOCAL installation for negotiation. Never put proof or SDP/ICE in URLs/logs/history. Responses no-store; signaling is encrypted ephemeral cache data.';
-        if (method === 'post' && !path.includes('/signals')) {
+          'Local diagnostic call control; optional API-only short-lived TURN setup credentials. Audio and native incoming calls unavailable. Current participants and exact claimed LOCAL device/session required. No proof, SDP/ICE or credentials in URLs/logs/history. Responses no-store; credential expiry is not call duration. Ongoing media/renewal/user-hangup lifecycle remains pending.';
+        if (
+          method === 'post' &&
+          !path.includes('/signals') &&
+          !path.endsWith('/relay-credentials')
+        ) {
           op.parameters ??= [];
           op.parameters.push({
             name: 'Idempotency-Key',

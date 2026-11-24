@@ -8,6 +8,10 @@ import { RidesModule } from '../rides/rides.module.js';
 import { DeliveriesModule } from '../deliveries/deliveries.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { CallingConfig } from './calling.config.js';
+import { CallRelayConfig } from './call-relay.config.js';
+import { CallRelayService } from './application/call-relay.service.js';
+import { CallRelay } from './application/call-relay.port.js';
+import { CoturnCallRelay } from './infrastructure/coturn-call-relay.js';
 import { CallRepository } from './application/call.repository.js';
 import { PrismaCallRepository } from './infrastructure/prisma-call.repository.js';
 import { CallSignals } from './application/call-signals.port.js';
@@ -46,6 +50,9 @@ class CallSchemaGate implements OnModuleInit {
   controllers: [CallingController],
   providers: [
     { provide: CallingConfig, useFactory: () => new CallingConfig() },
+    { provide: CallRelayConfig, useFactory: () => new CallRelayConfig() },
+    { provide: CallRelay, useClass: CoturnCallRelay },
+    CallRelayService,
     CallSchemaGate,
     { provide: CallRepository, useClass: PrismaCallRepository },
     { provide: CallSignals, useClass: RedisCallSignals },

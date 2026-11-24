@@ -19,12 +19,15 @@ import {
   callRequestKey,
   sendSignalBody,
   readSignalsBody,
+  relayCredentialBody,
 } from '../contracts/call.schemas.js';
 import { CallCreateService } from '../application/call-create.service.js';
 import { CallLifecycleService } from '../application/call-lifecycle.service.js';
 import { CallReadService } from '../application/call-read.service.js';
 import { CallSignalingService } from '../application/call-signaling.service.js';
 import { CallingConfig } from '../calling.config.js';
+import { CallRelayConfig } from '../call-relay.config.js';
+import { CallRelayService } from '../application/call-relay.service.js';
 const requestKey = (value: unknown) =>
   new SchemaPipe(callRequestKey).transform(value).toLowerCase();
 @Controller('calling')
@@ -37,13 +40,15 @@ export class CallingController {
     @Inject(CallSignalingService)
     private readonly signals: CallSignalingService,
     @Inject(CallingConfig) private readonly config: CallingConfig,
+    @Inject(CallRelayConfig) private readonly relayConfig: CallRelayConfig,
+    @Inject(CallRelayService) private readonly relay: CallRelayService,
   ) {}
   @Get('capabilities') capabilities() {
     this.config.assertEnabled();
     return {
       mode: 'LOCAL_CONTROL',
       audioAvailable: false,
-      turnCredentialsAvailable: false,
+      turnCredentialsAvailable: this.relayConfig.enabled,
       nativeIncomingCalls: false,
       signaling: 'REST_EPHEMERAL',
     };
@@ -94,6 +99,14 @@ export class CallingController {
     @Body(new SchemaPipe(sendSignalBody)) body: z.infer<typeof sendSignalBody>,
   ) {
     return this.signals.send(a, id, body);
+  }
+  @Post('calls/:id/relay-credentials') @HttpCode(200) relayCredentials(
+    @CurrentActor() a: Actor,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Body(new SchemaPipe(relayCredentialBody))
+    body: z.infer<typeof relayCredentialBody>,
+  ) {
+    return this.relay.issue(a, id, body);
   }
   @Post('calls/:id/signals/read') @HttpCode(200) signalRead(
     @CurrentActor() a: Actor,

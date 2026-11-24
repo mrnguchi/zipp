@@ -1,5 +1,17 @@
 # Development resources and version policy
 
+## M7 API relay credentials (2026-11-24)
+
+Reused installed Node24.18/Nest12/Zod4/TypeScript with no new package/image/lockfile. [ADR 0020](adr/0020-m7-scoped-relay-credentials.md) links selected coturn4.19.2 TURN REST HMAC authentication and version-specific Node crypto/filesystem references; [credential runbook](M7_RELAY_CREDENTIALS.md) records file/worker/authorization/expiry/secret/ongoing-call limits and actual build/static evidence. Tests remain unrun; no interoperability or runtime claim. The existing coturn pin in ADR0019 remains unchanged.
+
+## M7 local relay review (2026-11-24)
+
+Official coturn `4.19.2-r0-alpine` is pinned to OCI index `sha256:974824bdefa8759b7aa4508daf5066fdd9f5411e925055b6132fb2904aecca01`. [Image lock](../../infra/calling/image.lock.json), [ADR 0019 primary sources](adr/0019-m7-local-turn-relay.md) and [relay runbook](M7_TURN_RELAY.md) record selected-version parser/auth/peer/address review, image source/entrypoint/license, AMD64/ARM64 index/config SHA256 identities and Compose v5.5.1 source validation. Standalone Alpine/musl media service; Node/Expo/backend dependencies are unchanged. No image layer pull/scanner/container run, runtime/native compatibility or capacity claim. No private preparation or credential issuer ran; tests remain unrun.
+
+## M7 foreground native voice review (2026-11-23)
+
+Exact mobile additions: `react-native-webrtc@155.0.1`, `expo-dev-client@58.0.21`; preserved Expo 58.0.19/RN 0.88.0/React 19.3.0. Published registry peer/license/archive evidence and primary documentation are linked in [ADR 0018](adr/0018-m7-foreground-native-voice-foundation.md). A focused local Expo plugin replaces the reviewed, uninstalled broad-permission community plugin. Maven `org.jitsi:webrtc:155.0.1` is pinned instead of upstream `155.+`. The dev-client launcher requires Expo schema-utils ^58.0.3, so its existing 58.0.2 lock entry advanced to 58.0.3; this is the only existing transitive version changed. Ten lock entries were added, none removed. See [native guide](M7_NATIVE_VOICE.md) for allowed build evidence, device/iOS/media gaps and no-test policy. No backend package, image or provider change.
+
 Reviewed 2026-11-06 for the new backend. Old installed backend versions do not constrain the fresh implementation.
 
 M0 was verified on 2026-11-08. The implemented versions, pinned image digests, primary references and native compatibility decisions are recorded in [ADR 0001](adr/0001-m0-foundation.md); actual checks and audit qualifications are in [M0 verification](M0_VERIFICATION.md). The selection workflow below remains mandatory for subsequent changes.

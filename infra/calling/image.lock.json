@@ -1,0 +1,23 @@
+{
+  "reviewedOn": "2026-11-24",
+  "image": "ghcr.io/coturn/coturn:4.19.2-r0-alpine",
+  "indexDigest": "sha256:974824bdefa8759b7aa4508daf5066fdd9f5411e925055b6132fb2904aecca01",
+  "coturnVersion": "4.19.2",
+  "imageRevision": "4.19.2-r0",
+  "sourceRevision": "04fad0c85e0c03acc16dbd56ee0134c6a57b45a3",
+  "base": "Alpine 3.24 / musl",
+  "license": "BSD-3-Clause (coturn); bundled components have their own licenses",
+  "platforms": {
+    "linux/amd64": {
+      "manifestDigest": "sha256:6506363a1448d6aba51fbda1f7cf9cd8c727c66a3aed5dcd518249ec6e7d9f68",
+      "configDigest": "sha256:ac284d0a7bf952287307ece44fb3db5f62197deecdaa018ee2dac5e71e66bf8e",
+      "compressedLayerBytes": 23627770
+    },
+    "linux/arm64": {
+      "manifestDigest": "sha256:b8ef8b58b4ccf77e7c84f37a2a4f3da50e9e45087a84aa2b311ffd0cb7d7224f",
+      "configDigest": "sha256:850998c93fc15f026a88e7d30ed3e3906ffc1dfa95beddd7c089c11fe1af2d96",
+      "compressedLayerBytes": 24214006
+    }
+  },
+  "verification": "Public registry metadata SHA256 checked; no layer pull, scanner, image build or container run. Other index platforms unreviewed. Runtime/native/media acceptance pending."
+}

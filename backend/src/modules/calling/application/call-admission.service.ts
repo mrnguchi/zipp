@@ -10,12 +10,13 @@ export class CallAdmissionService {
     @Inject(IdentityFacade) private readonly identity: IdentityFacade,
     @Inject(RateLimitPort) private readonly limiter: RateLimitPort,
   ) {}
-  async admit(a: Actor, op: 'create' | 'action' | 'read' | 'signal') {
+  async admit(a: Actor, op: 'create' | 'action' | 'read' | 'signal' | 'relay') {
     this.config.assertEnabled();
     await this.limiter.consume([
       {
         key: `calling:${op}:${this.identity.pseudonym('actor', a.userId)}`,
-        limit: op === 'create' ? 5 : op === 'action' ? 30 : 60,
+        limit:
+          op === 'create' ? 5 : op === 'relay' ? 6 : op === 'action' ? 30 : 60,
         windowMs: 60000,
       },
     ]);

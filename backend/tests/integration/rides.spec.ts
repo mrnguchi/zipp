@@ -708,10 +708,42 @@ describe('M5 real database assignment and money invariants', () => {
     expect(
       (await h.reads.snapshot(f.customer, call.callId)).audioAvailable,
     ).toBe(false);
+    const relayRequest = {
+      ...callerDevice,
+      epoch: 1 as const,
+      expectedVersion: 2,
+    };
+    const grant = await h.relay.issue(f.customer, call.callId, relayRequest);
+    expect(grant.audioAvailable).toBe(false);
+    const row = await db.client.callSession.findUniqueOrThrow({
+      where: { id: call.callId },
+    });
+    const claimed = row.calleeDeviceId === first.deviceId ? first : second;
+    const losing = row.calleeDeviceId === first.deviceId ? second : first;
+    await expect(
+      h.relay.issue(f.driver, call.callId, {
+        ...losing,
+        epoch: 1,
+        expectedVersion: 2,
+      }),
+    ).rejects.toMatchObject({ code: 'CALL_DEVICE_NOT_CLAIMED' });
+    await expect(
+      h.relay.issue(f.driver, call.callId, {
+        ...claimed,
+        epoch: 1,
+        expectedVersion: 2,
+      }),
+    ).resolves.toMatchObject({
+      iceTransportPolicy: 'relay',
+      expiresAt: grant.expiresAt,
+    });
     await h.life.command(f.customer, randomUUID(), call.callId, 'END', {
       ...callerDevice,
       expectedVersion: 2,
     });
+    await expect(
+      h.relay.issue(f.customer, call.callId, relayRequest),
+    ).rejects.toMatchObject({ code: 'CALL_NOT_READY' });
     expect(
       await db.client.activeCallParticipant.count({
         where: { callId: call.callId },

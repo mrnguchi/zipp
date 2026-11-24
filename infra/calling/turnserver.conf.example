@@ -1,49 +1,44 @@
-# REVIEW TEMPLATE ONLY. Not wired to Compose or a running service.
-# Select/pin the coturn image/version and private interface/TLS/secret inputs
-# before rendering an actual config. Do not launch with these placeholders.
-listening-ip=REPLACE_WITH_REVIEWED_LISTEN_ADDRESS
-relay-ip=REPLACE_WITH_REVIEWED_RELAY_ADDRESS
-realm=REPLACE_WITH_CALLING_REALM
+# REFERENCE ONLY; never mounted by the local Compose profile.
+# Secret intentionally absent: this is not a usable relay config.
+# prepare-local-relay.mjs creates the complete private .local/turnserver.conf.
+# Read docs/backend/M7_TURN_RELAY.md and ADR 0019 before topology changes.
+listening-ip=172.30.240.2
+relay-ip=172.30.240.2
 listening-port=3478
-tls-listening-port=5349
-min-port=49160
-max-port=49259
+realm=zipp.voice.local.invalid
 fingerprint
 use-auth-secret
-# Runtime: load static-auth-secret from a private server-side secret file.
-# Never commit a shared secret or expose it to mobile/public environment variables.
-cert=REPLACE_WITH_PRIVATE_CERT_PATH
-pkey=REPLACE_WITH_PRIVATE_KEY_PATH
+# Preparation inserts static-auth-secret in the PRIVATE generated file only.
+no-auth-pings
+no-dynamic-ip-list
+no-dynamic-realms
+allocation-default-address-family=ipv4
+no-tls
+dtls=false
+no-tcp-relay
+no-stun
+no-cli
+no-multicast-peers
+software-attribute=false
+stateless-nonce
 stale-nonce=600
+unauthorized-ratelimit=enforce
+unauthorized-ratelimit-rps=5
+max-allocate-timeout=10
+# Refresh bound, not immediate revocation or maximum call duration.
 max-allocate-lifetime=60
 user-quota=2
-total-quota=200
-# Initial engineering bounds; measure before changing or claiming call capacity.
-max-bps=128000
-bps-capacity=12800000
-no-loopback-peers
-no-multicast-peers
-no-cli
-no-tcp-relay
-denied-peer-ip=0.0.0.0-0.255.255.255
-denied-peer-ip=10.0.0.0-10.255.255.255
-denied-peer-ip=100.64.0.0-100.127.255.255
-denied-peer-ip=127.0.0.0-127.255.255.255
-denied-peer-ip=169.254.0.0-169.254.255.255
-denied-peer-ip=172.16.0.0-172.31.255.255
-denied-peer-ip=192.0.0.0-192.0.0.255
-denied-peer-ip=192.0.2.0-192.0.2.255
-denied-peer-ip=192.168.0.0-192.168.255.255
-denied-peer-ip=198.18.0.0-198.19.255.255
-denied-peer-ip=198.51.100.0-198.51.100.255
-denied-peer-ip=203.0.113.0-203.0.113.255
-denied-peer-ip=224.0.0.0-255.255.255.255
-denied-peer-ip=::
-denied-peer-ip=::1
-denied-peer-ip=::-::ffff:ffff:ffff
-denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-denied-peer-ip=ff00::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-# Bind/firewall the native media range explicitly for local development.
-# Allocation teardown, IPv4-mapped IPv6 policy and NAT/public-IP mapping require
-# selected-version review plus isolated tests; this template is not acceptance.
+total-quota=20
+min-port=49160
+max-port=49179
+max-bps=64000
+bps-capacity=1280000
+relay-threads=1
+cpus=1
+# Both callers must relay through allocations on THIS container.
+denied-peer-ip=0.0.0.0-255.255.255.255
+denied-peer-ip=::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+allowed-peer-ip=172.30.240.2
+pidfile=/tmp/turnserver.pid
+log-file=/dev/null
+no-stdout-log

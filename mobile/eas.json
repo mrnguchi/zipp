@@ -4,6 +4,14 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "voice-development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "APP_ENV": "development",
+        "ZIPP_NATIVE_VOICE_BUILD": "true"
+      }
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal"

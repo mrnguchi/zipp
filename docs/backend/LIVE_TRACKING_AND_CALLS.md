@@ -1,5 +1,9 @@
 # Live maps, tracking and voice calls
 
+2026-11-24 user call-ending rule: a healthy ongoing conversation has no arbitrary duration cutoff and ends when either claimed participant hangs up. Credential expiry remains a security/renewal concern, distinct from call duration; revocation, job termination and abandoned connections still need bounded teardown. [API setup credentials](M7_RELAY_CREDENTIALS.md) and [ADR 0020](adr/0020-m7-scoped-relay-credentials.md) implement the next default-off credential slice only; ongoing media/renewal/liveness/epoch/reconnect and mobile teardown remain pending. Existing finite diagnostic setup deadlines must not be removed or treated as a usable ongoing-call contract. Build/static checks only; tests/real issuance/native/audio remain unrun.
+
+2026-11-24 foreground continuation: Android native foundation build evidence is in [native guide](M7_NATIVE_VOICE.md). [Local TURN configuration](M7_TURN_RELAY.md) and [ADR 0019](adr/0019-m7-local-turn-relay.md) add a separate opt-in image-pinned coturn role/private preparation with same-container relay-only peer restrictions. Source checks only; no private output, relay startup, tests or audio. Actual authorized credentials, ongoing media/renewal/teardown/reconnection, iOS and incoming push remain pending; current backend is diagnostic/default-off. The local profile is not the public relay/NAT/TLS architecture described below.
+
 Established 2026-11-06. Status: required design and acceptance reference, not implemented functionality. Read alongside [architecture](ARCHITECTURE.md), [capacity](CAPACITY.md), [infrastructure](INFRASTRUCTURE.md) and [dependency policy](DEPENDENCY_POLICY.md).
 
 ## 1. Responsibilities and product boundaries

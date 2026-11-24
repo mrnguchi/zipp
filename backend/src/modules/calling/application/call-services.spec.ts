@@ -15,6 +15,9 @@ import type { Actor } from '../../../shared/contracts/actor.js';
 import { RateLimitPort } from '../../../shared/contracts/rate-limit.js';
 import { BusinessError } from '../../../shared/errors/business-error.js';
 import { CallingConfig } from '../calling.config.js';
+import { CallRelayConfig } from '../call-relay.config.js';
+import { CallRelayService } from './call-relay.service.js';
+import { CallRelay } from './call-relay.port.js';
 import { CallRepository } from './call.repository.js';
 import { CallSignals } from './call-signals.port.js';
 import { CallAccessService } from './call-access.service.js';
@@ -37,7 +40,8 @@ describe('call authorization, claim and recovery (written, not run)', () => {
     reads: CallReadService,
     signals: CallSignalingService,
     reaper: CallReaperService,
-    requests: CallRequestsService;
+    requests: CallRequestsService,
+    relay: CallRelayService;
   let transactionDepth = 0;
   const proof = randomBytes(32).toString('base64url'),
     context = { id: randomUUID() };
@@ -64,7 +68,8 @@ describe('call authorization, claim and recovery (written, not run)', () => {
     currentDevice = jest.fn<NotificationsFacade['currentCallDevice']>(),
     send = jest.fn<CallSignals['send']>(),
     read = jest.fn<CallSignals['read']>(),
-    consume = jest.fn<RateLimitPort['consume']>();
+    consume = jest.fn<RateLimitPort['consume']>(),
+    mint = jest.fn<CallRelay['mint']>();
   beforeEach(async () => {
     jest.resetAllMocks();
     now = new Date();
@@ -140,6 +145,9 @@ describe('call authorization, claim and recovery (written, not run)', () => {
         CallReadService,
         CallReaperService,
         CallSignalingService,
+        CallRelayService,
+        { provide: CallRelayConfig, useValue: { assertEnabled: () => {} } },
+        { provide: CallRelay, useValue: { mint } },
         {
           provide: UnitOfWork,
           useValue: {
@@ -197,6 +205,26 @@ describe('call authorization, claim and recovery (written, not run)', () => {
     signals = module.get(CallSignalingService);
     reaper = module.get(CallReaperService);
     requests = module.get(CallRequestsService);
+    relay = module.get(CallRelayService);
+    mint.mockImplementation((grant) => {
+      expect(transactionDepth).toBe(0);
+      return {
+        iceServers: [
+          {
+            urls: [
+              'turn:192.168.1.50:3478?transport=udp',
+              'turn:192.168.1.50:3478?transport=tcp',
+            ],
+            username: 'opaque-unit-grant',
+            credential: 'opaque-unit-password',
+          },
+        ],
+        expiresAt: grant.expiresAt.toISOString(),
+        serverTime: grant.serverTime.toISOString(),
+        iceTransportPolicy: 'relay',
+        audioAvailable: false,
+      };
+    });
   });
   const callerDevice = () => ({
     deviceId: r.callerDeviceId,
@@ -230,6 +258,116 @@ describe('call authorization, claim and recovery (written, not run)', () => {
     );
     expect(JSON.stringify(repo.event.mock.calls)).not.toContain(proof);
     expect(r).not.toHaveProperty('sdp');
+  });
+  it('issues only after accept, outside transactions, with fixed expiry and shared issuer quota', async () => {
+    const request = {
+      ...callerDevice(),
+      epoch: 1 as const,
+      expectedVersion: 1,
+    };
+    await expect(relay.issue(caller, r.id, request)).rejects.toMatchObject({
+      code: 'CALL_NOT_READY',
+    });
+    expect(mint).not.toHaveBeenCalled();
+    await accept();
+    request.expectedVersion = r.version;
+    const first = await relay.issue(caller, r.id, request);
+    now = new Date(now.getTime() + 5000);
+    const retry = await relay.issue(caller, r.id, request);
+    expect(first.expiresAt).toBe(retry.expiresAt);
+    expect(first.audioAvailable).toBe(false);
+    expect(mint.mock.calls[0]?.[0].scope).toEqual(
+      mint.mock.calls[1]?.[0].scope,
+    );
+    expect(repo.receipt).toHaveBeenCalledTimes(1); // ACCEPT only; no credential receipts.
+    expect(consume).toHaveBeenCalledWith([
+      expect.objectContaining({ limit: 6, windowMs: 60000 }),
+    ]);
+  });
+  it('denies relay grants to strangers, losing devices, changed sessions, stale versions and revoked endpoints', async () => {
+    await accept();
+    const input = {
+      ...callerDevice(),
+      epoch: 1 as const,
+      expectedVersion: r.version,
+    };
+    await expect(
+      relay.issue(
+        { ...caller, userId: randomUUID(), roles: ['ADMIN'] },
+        r.id,
+        input,
+      ),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(
+      relay.issue(caller, r.id, { ...input, deviceId: randomUUID() }),
+    ).rejects.toMatchObject({ code: 'CALL_DEVICE_NOT_CLAIMED' });
+    await expect(
+      relay.issue({ ...caller, sessionId: randomUUID() }, r.id, input),
+    ).rejects.toMatchObject({ code: 'CALL_DEVICE_NOT_CLAIMED' });
+    await expect(
+      relay.issue(caller, r.id, { ...input, expectedVersion: 1 }),
+    ).rejects.toMatchObject({ code: 'CALL_VERSION_CONFLICT' });
+    currentDevice.mockResolvedValue(false);
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_NOT_ELIGIBLE',
+    });
+    expect(mint).not.toHaveBeenCalled();
+  });
+  it('reauthorizes after mint and never returns a credential after end/job/device-loss races', async () => {
+    await accept();
+    const input = {
+      ...callerDevice(),
+      epoch: 1 as const,
+      expectedVersion: r.version,
+    };
+    const original = mint.getMockImplementation();
+    if (!original) throw new Error('Missing relay test adapter');
+    mint.mockImplementation((grant) => {
+      const result = original(grant);
+      r.status = 'ENDED';
+      r.version++;
+      return result;
+    });
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_NOT_READY',
+    });
+    r.status = 'CONNECTING';
+    r.version = input.expectedVersion;
+    mint.mockImplementation((grant) => {
+      const result = original(grant);
+      job.mockResolvedValue({ eligible: false });
+      return result;
+    });
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_NOT_ELIGIBLE',
+    });
+    job.mockResolvedValue({ eligible: true });
+    mint.mockImplementation((grant) => {
+      const result = original(grant);
+      currentDevice.mockResolvedValue(false);
+      return result;
+    });
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_NOT_ELIGIBLE',
+    });
+  });
+  it('commits setup expiry cleanup before refusing a relay grant, never refreshing a terminal attempt', async () => {
+    await accept();
+    const input = {
+      ...callerDevice(),
+      epoch: 1 as const,
+      expectedVersion: r.version,
+    };
+    now = new Date(r.connectExpiresAt!.getTime());
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_EXPIRED',
+    });
+    expect(r.status).toBe('FAILED');
+    expect(repo.releaseAccounts).toHaveBeenCalledWith(context, r.id);
+    await expect(relay.issue(caller, r.id, input)).rejects.toMatchObject({
+      code: 'CALL_NOT_READY',
+    });
+    expect(mint).not.toHaveBeenCalled();
   });
   it('denies stranger history and current-job access without a role bypass', async () => {
     await expect(
